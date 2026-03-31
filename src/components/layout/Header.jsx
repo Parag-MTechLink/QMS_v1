@@ -6,21 +6,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const Header = () => {
   return (
-    <header className="fixed top-0 right-0 left-64 h-16 bg-white border-b border-gray-200 z-40 flex items-center justify-between px-6">
-      <div className="flex-1 max-w-lg">
+    <header className="fixed left-64 right-0 top-0 z-40 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6">
+      <div className="w-full max-w-xl">
         <div className="relative group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
           <Input 
             className="pl-10 h-10 bg-gray-50 border-gray-200 focus:bg-white focus:ring-indigo-500 rounded-md text-sm w-full transition-all"
-            placeholder="Search documents, standards, or audit events..."
+            placeholder="Search documents, clauses, owners, or audit events..."
           />
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="sm" className="hidden lg:flex items-center gap-2 border-gray-200 text-gray-700 hover:bg-gray-50 rounded-md">
+      <div className="ml-6 flex items-center gap-3">
+        <Button variant="outline" size="sm" className="hidden xl:flex items-center gap-2 border-gray-200 text-gray-700 hover:bg-gray-50 rounded-md">
           <Download className="w-4 h-4" />
-          Export Reports
+          Export
         </Button>
         
         <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2 rounded-md shadow-sm">
@@ -37,7 +37,7 @@ export const Header = () => {
           </Button>
         </div>
 
-        <div className="flex items-center gap-3 pl-2">
+        <div className="flex items-center gap-3 pl-1">
           <div className="text-right hidden sm:block leading-none">
             <div className="text-sm font-semibold text-gray-900">Sarah Jenkins</div>
             <div className="text-[10px] text-gray-500 uppercase tracking-widest font-medium">Document Control Lead</div>

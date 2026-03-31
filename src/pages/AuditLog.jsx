@@ -1,23 +1,14 @@
 import React from "react";
 import { 
   Search, 
-  Filter, 
   Download, 
   ChevronDown, 
   X,
-  Clock,
-  User,
-  FileCheck,
   Edit,
   MessageSquare,
   Trash2,
   CheckCircle2,
-  History,
-  ShieldCheck,
-  ShieldAlert,
-  ArrowUpRight,
-  ExternalLink,
-  MoreVertical
+  Filter
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -118,16 +109,21 @@ const auditLogs = [
 
 export default function AuditLog() {
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-[1400px] mx-auto">
-      {/* Header */}
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Audit & Activity Log</h1>
-        <p className="text-sm text-gray-500">Monitor comprehensive traceability and audit logs across your QMS platform.</p>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Audit & Activity Log</h1>
+          <p className="text-sm text-gray-500">Monitor comprehensive traceability and audit logs across your QMS platform.</p>
+        </div>
+        <Button variant="outline" className="h-9 border-gray-200">Export Log</Button>
       </div>
 
-      {/* Filter Bar */}
       <div className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm space-y-4">
         <div className="flex flex-wrap items-center gap-3">
+          <div className="relative min-w-[260px] flex-1 max-w-md">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input className="h-9 border-gray-200 bg-gray-50 pl-9 text-sm focus:bg-white" placeholder="Search user, action, document ID, or IP..." />
+          </div>
           <FilterSelect label="All Users" />
           <FilterSelect label="All Actions" />
           <FilterSelect label="All Documents" />
@@ -141,8 +137,7 @@ export default function AuditLog() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Recent Activity (Left Sidebar) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div className="lg:col-span-4 space-y-6">
           <Card className="border-gray-200 shadow-sm sticky top-20">
             <CardHeader className="pb-4 border-b border-gray-50">
@@ -179,7 +174,6 @@ export default function AuditLog() {
             </CardContent>
           </Card>
           
-          {/* AI Governance online card - keeping it consistent with the UI theme */}
           <Card className="border-gray-200 bg-slate-900 p-6 space-y-4">
              <div className="flex flex-col gap-1">
                <div className="text-[10px] uppercase font-black tracking-[0.2em] text-blue-400">System Health Stable</div>
@@ -194,7 +188,6 @@ export default function AuditLog() {
           </Card>
         </div>
 
-        {/* Detailed Audit Log (Right) */}
         <div className="lg:col-span-8 space-y-6">
           <Card className="border-gray-200 shadow-sm overflow-hidden">
             <CardHeader className="py-4 px-6 border-b border-gray-50 flex flex-row items-center justify-between bg-slate-50/30">
@@ -259,7 +252,6 @@ export default function AuditLog() {
                  </TableBody>
                </Table>
                
-               {/* Pagination Component - inspired by the mockup style */}
                <div className="px-6 py-4 border-t border-gray-50 bg-white flex items-center justify-between">
                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                    Showing <span className="text-slate-900">1 to 5</span> of 1,245 entries

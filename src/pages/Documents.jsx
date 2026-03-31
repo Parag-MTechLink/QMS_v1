@@ -120,8 +120,12 @@ export default function Documents() {
         </Card>
       </div>
 
-      <div className="flex items-center justify-between gap-4 py-4 px-1 bg-white">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-1 flex-wrap items-center gap-3">
+          <div className="relative min-w-[260px] flex-1 max-w-md">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input className="h-9 border-gray-200 bg-gray-50 pl-9 text-sm focus:bg-white" placeholder="Search by name, ID, owner..." />
+          </div>
           <Button variant="outline" className="text-xs border-gray-200 rounded-md h-9 px-4 gap-2">
             Type: <span className="font-semibold">All Documents</span>
             <ChevronDown className="w-3 h-3" />
@@ -134,7 +138,7 @@ export default function Documents() {
             Department: <span className="font-semibold">All Departments</span>
             <ChevronDown className="w-3 h-3" />
           </Button>
-          <Button variant="ghost" className="h-9 w-9 p-0 rounded-md">
+          <Button variant="ghost" className="h-9 w-9 p-0 rounded-md border border-transparent hover:border-gray-100">
             <Filter className="w-4 h-4 text-gray-500" />
           </Button>
         </div>

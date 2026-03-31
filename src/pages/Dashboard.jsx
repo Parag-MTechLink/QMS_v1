@@ -53,39 +53,63 @@ const insights = [
 export default function Dashboard() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="px-2 py-0.5 bg-green-50 text-green-700 text-[10px] font-bold uppercase rounded border border-green-200 tracking-wider">Operational Overview</span>
-            <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-bold uppercase rounded border border-slate-200 tracking-wider">React Foundation</span>
+            <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-bold uppercase rounded border border-slate-200 tracking-wider">QMS</span>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Quality Operations Command Center</h1>
-          <p className="text-gray-500 text-sm mt-1 max-w-2xl leading-relaxed">
-            A refined QMS dashboard with a strong premium SaaS feel — keeping the enterprise structure intact while borrowing subtle layered depth and clean data presentation.
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight sm:text-3xl">Quality Operations</h1>
+          <p className="text-sm text-gray-500 max-w-2xl leading-relaxed">
+            Monitor document lifecycle throughput, review risks, and compliance posture at a glance.
           </p>
         </div>
-        
-        <Card className="w-72 bg-indigo-600 text-white border-none shadow-lg shadow-indigo-100">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-medium text-indigo-100">This week's quality pulse</span>
-              <div className="px-2 py-1 bg-white/10 rounded-full text-[10px] font-bold">+4.3 vs last week</div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" className="h-9 border-gray-200 bg-white text-xs font-semibold">
+            Export snapshot
+          </Button>
+          <Button className="h-9 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm">
+            Create document
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="border-gray-200 shadow-sm">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Quality pulse</div>
+                <div className="mt-2 text-3xl font-black text-slate-900 tabular-nums">96.4</div>
+              </div>
+              <span className="rounded-full bg-indigo-50 px-2 py-1 text-[10px] font-bold text-indigo-700">+4.3 WoW</span>
             </div>
-            <div className="text-5xl font-bold mb-6 tabular-nums">96.4</div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="bg-white/10 rounded-md p-2 text-center">
-                <div className="text-lg font-bold">18</div>
-                <div className="text-[8px] uppercase text-indigo-200">Pending</div>
-              </div>
-              <div className="bg-white/10 rounded-md p-2 text-center">
-                <div className="text-lg font-bold">7</div>
-                <div className="text-[8px] uppercase text-indigo-200">Gaps</div>
-              </div>
-              <div className="bg-white/10 rounded-md p-2 text-center">
-                <div className="text-lg font-bold">3</div>
-                <div className="text-[8px] uppercase text-indigo-200">Risks</div>
-              </div>
-            </div>
+            <div className="mt-3 text-xs text-gray-500">Composite score across audits, reviews, and CAPA closure.</div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-gray-200 shadow-sm">
+          <CardContent className="p-5">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Pending reviews</div>
+            <div className="mt-2 text-3xl font-black text-slate-900 tabular-nums">18</div>
+            <div className="mt-3 text-xs text-gray-500">Items requiring review within 7 days.</div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-gray-200 shadow-sm">
+          <CardContent className="p-5">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Open gaps</div>
+            <div className="mt-2 text-3xl font-black text-slate-900 tabular-nums">7</div>
+            <div className="mt-3 text-xs text-gray-500">Unmapped clauses and missing evidence.</div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-gray-200 shadow-sm">
+          <CardContent className="p-5">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Critical risks</div>
+            <div className="mt-2 text-3xl font-black text-red-600 tabular-nums">3</div>
+            <div className="mt-3 text-xs text-gray-500">Escalations likely to affect audit readiness.</div>
           </CardContent>
         </Card>
       </div>
@@ -101,13 +125,12 @@ export default function Dashboard() {
             Live operations monitor
           </span>
         </CardHeader>
-        <CardContent className="p-8">
-          <div className="grid grid-cols-5 gap-4 relative">
-            <div className="absolute top-1/2 left-0 w-full h-px bg-gray-100 -translate-y-1/2 z-0" />
+        <CardContent className="p-6 sm:p-8">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5">
             
             {pipelineStages.map((stage) => (
-              <div key={stage.label} className="relative z-10 flex flex-col items-center group">
-                <div className="bg-white p-1 rounded-full mb-4 ring-1 ring-gray-100">
+              <div key={stage.label} className="flex flex-col items-center rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+                <div className="bg-white p-1 rounded-full mb-3 ring-1 ring-gray-100">
                   <div className={cn(
                     "w-12 h-12 rounded-full flex items-center justify-center transition-all group-hover:scale-110",
                     stage.color === "blue" && "bg-blue-50 text-blue-600",
@@ -209,7 +232,7 @@ export default function Dashboard() {
                     strokeLinecap="round"
                   />
                 </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center rotate-90">
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <div className="text-4xl font-black text-gray-900 tracking-tighter">92%</div>
                   <div className="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-1">Healthy posture</div>
                 </div>

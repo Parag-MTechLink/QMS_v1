@@ -19,6 +19,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
 import { 
   Table, 
   TableBody, 
@@ -38,18 +39,18 @@ const clauses = [
 
 export default function Compliance() {
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-700 max-w-[1400px] mx-auto">
-      {/* Header */}
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Compliance & Standards</h1>
-        <p className="text-sm text-gray-500">Track standards mapping and compliance gaps across your organization.</p>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-700">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Compliance & Standards</h1>
+          <p className="text-sm text-gray-500">Track standards mapping and compliance gaps across your organization.</p>
+        </div>
+        <Button className="h-9 bg-indigo-600 hover:bg-indigo-700 text-white">New Document</Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Main Dashboard Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div className="lg:col-span-9 space-y-8">
           
-          {/* Overview Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card className="border-gray-200">
                <CardContent className="p-6 flex flex-col items-center justify-center gap-2">
@@ -118,7 +119,6 @@ export default function Compliance() {
             </Card>
           </div>
 
-          {/* Standards Coverage Grid */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Standards Coverage</h3>
@@ -174,11 +174,16 @@ export default function Compliance() {
             </div>
           </div>
 
-          {/* Clause Coverage Table */}
           <div className="space-y-4 pt-4">
              <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Clause Coverage</h3>
-                <Button variant="outline" className="text-xs h-8 px-3 rounded-md border-gray-200 gap-2">
+             </div>
+             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                <div className="relative min-w-[260px] flex-1 max-w-md">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <Input className="h-9 border-gray-200 bg-gray-50 pl-9 text-sm focus:bg-white" placeholder="Search clauses, standards, or keywords..." />
+                </div>
+                <Button variant="outline" className="text-xs h-9 px-3 rounded-md border-gray-200 gap-2">
                   <Filter className="w-3 h-3" />
                   Filter
                 </Button>
@@ -235,7 +240,6 @@ export default function Compliance() {
           </div>
         </div>
 
-        {/* Sidebar panels */}
         <div className="lg:col-span-3 space-y-6">
           <Card className="border-gray-200 shadow-xl shadow-slate-200/50 bg-white sticky top-20">
             <CardHeader className="pb-2 border-b border-gray-50 flex flex-row items-center justify-between">

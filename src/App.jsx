@@ -16,8 +16,8 @@ function Layout({ children }) {
       <Sidebar />
       <div className="pl-64">
         <Header />
-        <main className="pt-16 p-8 min-h-screen">
-          {children}
+        <main className="min-h-screen px-6 pb-8 pt-20 lg:px-8">
+          <div className="mx-auto w-full max-w-[1440px]">{children}</div>
         </main>
       </div>
     </div>

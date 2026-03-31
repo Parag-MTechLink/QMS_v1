@@ -1,15 +1,10 @@
 import React from "react";
 import { 
   FileText, 
-  Clock, 
-  AlertCircle, 
-  User, 
-  ArrowRight,
   Upload,
   MoreVertical,
-  CheckCircle2,
   Search,
-  Plus
+  ArrowUpDown
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +18,6 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { cn } from "@/lib/utils";
 
 const history = [
   {
@@ -51,14 +45,15 @@ const history = [
 
 export default function Reviews() {
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 max-w-[1400px] mx-auto">
-      {/* Header Section */}
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Document Change Request</h1>
-        <p className="text-sm text-gray-500">Manage lifecycle revisions and archival requests for the precision ledger.</p>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Document Change Request</h1>
+          <p className="text-sm text-gray-500">Manage lifecycle revisions and archival requests.</p>
+        </div>
+        <Button className="h-9 bg-indigo-600 hover:bg-indigo-700 text-white">New Request</Button>
       </div>
 
-      {/* Tabs */}
       <div className="flex bg-gray-100/50 p-1 rounded-lg w-fit">
         <button className="px-6 py-2 rounded-md text-sm font-semibold bg-white text-blue-600 shadow-sm border border-gray-100 transition-all">
           Raise Request
@@ -68,12 +63,10 @@ export default function Reviews() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Main Form Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div className="lg:col-span-8 space-y-6">
           <Card className="border-gray-200 shadow-sm">
             <CardContent className="p-8 space-y-8">
-              {/* Document Reference section */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Document Reference</h3>
@@ -99,7 +92,6 @@ export default function Reviews() {
                 </div>
               </div>
 
-              {/* Selection fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
                 <div className="space-y-3">
                   <label className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Change Type</label>
@@ -123,7 +115,6 @@ export default function Reviews() {
                 </div>
               </div>
 
-              {/* Textareas */}
               <div className="space-y-3 pt-4">
                 <label className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Reason for Change</label>
                 <textarea 
@@ -140,7 +131,6 @@ export default function Reviews() {
                 />
               </div>
 
-              {/* Supporting Evidence (Drag Drop) */}
               <div className="space-y-3 pt-4 pb-4">
                 <label className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Supporting Evidence</label>
                 <div className="border-2 border-dashed border-gray-200 rounded-xl p-10 bg-slate-50/50 flex flex-col items-center justify-center gap-3 group hover:bg-white hover:border-blue-400 transition-all cursor-pointer">
@@ -156,7 +146,6 @@ export default function Reviews() {
                 </div>
               </div>
 
-              {/* Submit Button */}
               <div className="flex justify-end pt-4">
                 <Button className="h-12 px-10 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-bold shadow-lg shadow-blue-200 transition-all">
                   Submit Change Request
@@ -166,7 +155,6 @@ export default function Reviews() {
           </Card>
         </div>
 
-        {/* Sidebar panels */}
         <div className="lg:col-span-4 space-y-6 flex flex-col">
           <Card className="border-gray-200 shadow-sm overflow-hidden border-l-4 border-l-blue-500 transition-all hover:shadow-md">
             <CardHeader className="pb-2 border-b border-gray-50 bg-slate-50/50">
@@ -186,7 +174,6 @@ export default function Reviews() {
                 <span className="text-[10px] font-black px-2 py-1 bg-blue-50 text-blue-700 rounded-md uppercase tracking-wider">Standard QA Path</span>
               </div>
               
-              {/* Note panel */}
               <div className="p-4 bg-gray-50/80 rounded-lg border border-gray-100 mt-2">
                 <p className="text-[11px] italic text-slate-500 leading-relaxed">
                   "Submission of this form triggers a formal impact assessment workflow. Ensure all critical safety parameters are addressed in the proposed changes."
@@ -219,12 +206,24 @@ export default function Reviews() {
         </div>
       </div>
 
-      {/* History section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-gray-900">Recent Request History</h3>
           <Button variant="ghost" className="text-blue-600 font-bold text-xs uppercase tracking-widest p-1 h-auto">
             View All Requests
+          </Button>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="relative min-w-[260px] flex-1 max-w-md">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input
+              className="h-9 border-gray-200 bg-gray-50 pl-9 text-sm focus:bg-white"
+              placeholder="Search by document, request ID, or status..."
+            />
+          </div>
+          <Button variant="outline" className="h-9 gap-2 border-gray-200 text-xs">
+            Sort: Latest
+            <ArrowUpDown className="h-3.5 w-3.5" />
           </Button>
         </div>
         

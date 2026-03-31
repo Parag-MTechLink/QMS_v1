@@ -6,11 +6,6 @@ import {
   Printer, 
   Share2, 
   MessageSquare, 
-  History,
-  CheckCircle2,
-  Clock,
-  User,
-  MoreVertical,
   Minus,
   Plus,
   FileText,
@@ -26,123 +21,97 @@ export default function DocumentDetail() {
   const { id } = useParams();
   
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 pb-20">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="rounded-full hover:bg-white hover:shadow-sm transition-all" asChild>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 pb-12">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" className="rounded-full" asChild>
             <Link to="/documents">
               <ArrowLeft className="w-4 h-4" />
             </Link>
           </Button>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-gray-400 uppercase tracking-widest">Document details</span>
-              <Separator orientation="vertical" className="h-3" />
-              <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest">{id || "QM-001"}</span>
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Quality Manual 2024</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Quality Manual 2024</h1>
+            <div className="mt-1 text-xs text-gray-500">Document ID: {id || "QM-001"} · Version v4.0</div>
           </div>
         </div>
-
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="h-9 px-3 gap-2 border-gray-200">
+          <Button variant="outline" size="sm" className="h-9 border-gray-200">
             <Printer className="w-4 h-4" />
           </Button>
-          <Button variant="outline" size="sm" className="h-9 px-3 gap-2 border-gray-200">
+          <Button variant="outline" size="sm" className="h-9 border-gray-200">
             <Download className="w-4 h-4" />
           </Button>
-          <Button variant="outline" size="sm" className="h-9 px-3 gap-2 border-gray-200">
+          <Button variant="outline" size="sm" className="h-9 border-gray-200">
             <Share2 className="w-4 h-4" />
-          </Button>
-          <div className="h-6 w-px bg-gray-200 mx-2" />
-          <Button className="h-9 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md shadow-sm">
-            Create New Version
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        <div className="lg:col-span-8 space-y-6">
-          <Card className="border-gray-200 shadow-xl shadow-slate-200/50 min-h-[800px] relative overflow-hidden bg-white">
-            <div className="absolute top-0 left-0 w-full h-1 bg-indigo-600" />
-            <CardContent className="p-12">
-              <div className="flex justify-between items-start mb-16">
-                <div className="w-24 h-24 bg-indigo-50 rounded-xl flex items-center justify-center">
-                  <CheckCircle2 className="w-12 h-12 text-indigo-600 opacity-20" />
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+        <div className="xl:col-span-8">
+          <Card className="overflow-hidden border-gray-200 shadow-sm">
+            <CardHeader className="border-b border-gray-100 bg-slate-50/60 px-5 py-3">
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <div className="flex items-center gap-3">
+                  <span>100%</span>
+                  <Separator orientation="vertical" className="h-3" />
+                  <span>Page 1 of 24</span>
                 </div>
-                <div className="text-right">
-                  <div className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-1">Controlled Document</div>
-                  <div className="text-xs font-bold text-slate-800">ID: QM-001</div>
-                  <div className="text-xs font-bold text-slate-800">Revision: v4.0</div>
-                  <div className="text-xs font-bold text-slate-800">Effective: Oct 24, 2023</div>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <Minus className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <Plus className="w-3.5 h-3.5" />
+                  </Button>
                 </div>
               </div>
+            </CardHeader>
+            <CardContent className="bg-slate-100/60 p-6">
+              <div className="mx-auto min-h-[820px] max-w-3xl rounded-md border border-gray-200 bg-white p-10 shadow-sm">
+                <div className="space-y-3 border-b border-gray-200 pb-8">
+                  <div className="text-xs uppercase tracking-widest text-gray-400">Quality Management Document</div>
+                  <h2 className="text-4xl font-black text-slate-900 tracking-tight">QUALITY MANUAL</h2>
+                  <div className="text-sm text-gray-500">Enterprise Standard Operating Procedure</div>
+                </div>
 
-              <div className="max-w-2xl mx-auto space-y-12">
-                <section className="text-center space-y-4">
-                  <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Quality Manual 2024</h1>
-                  <p className="text-slate-500 uppercase tracking-[0.3em] font-bold text-[10px]">Enterprise Standard Operating Procedure</p>
-                  <Separator className="w-24 mx-auto bg-indigo-600 h-1 rounded-full" />
-                </section>
-
-                <section className="space-y-6 pt-10">
-                  <div className="space-y-4">
-                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-3">
-                      <span className="w-8 h-8 rounded bg-slate-900 text-white flex items-center justify-center text-xs">1.0</span>
-                      Scope and Application
-                    </h2>
-                    <p className="text-slate-600 leading-relaxed indent-8">
-                      This Quality Manual describes the Quality Management System (QMS) established, implemented, and maintained by MS Enterprise. It applies to all activities related to the design, development, manufacturing, and distribution of our products globally.
+                <div className="space-y-8 pt-8 text-slate-700">
+                  <section>
+                    <h3 className="text-3xl font-semibold text-slate-900">Quality Manual 2024</h3>
+                    <p className="mt-2 text-base leading-8">
+                      This Quality Manual describes the Quality Management System (QMS) established, implemented, and maintained by MS Enterprise. It applies to all activities related to the design, development, manufacturing, and distribution of our products.
                     </p>
-                    <p className="text-slate-600 leading-relaxed indent-8">
-                      The scope of this QMS encompasses all operational facilities and departments. This manual outlines the policies, procedures, and responsibilities required to ensure compliance with ISO 9001:2015 standards and relevant regulatory requirements.
-                    </p>
-                  </div>
+                  </section>
 
-                  <div className="space-y-4 pt-4">
-                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-3">
-                      <span className="w-8 h-8 rounded bg-slate-900 text-white flex items-center justify-center text-xs">2.0</span>
-                      Normative References
-                    </h2>
-                    <ul className="space-y-3 pl-12 list-disc text-slate-600">
-                      <li>ISO 9000:2015 Quality management systems — Fundamentals and vocabulary</li>
-                      <li>ISO 9001:2015 Quality management systems — Requirements</li>
+                  <section>
+                    <h4 className="text-2xl font-semibold text-slate-900">1. Scope and Application</h4>
+                    <p className="mt-2 text-base leading-8">
+                      The scope of this QMS encompasses all operational facilities and departments globally. This manual outlines the policies, procedures, and responsibilities required to ensure compliance with ISO 9001:2015 standards and relevant regulatory requirements.
+                    </p>
+                  </section>
+
+                  <section>
+                    <h4 className="text-2xl font-semibold text-slate-900">2. Normative References</h4>
+                    <ul className="mt-2 list-disc space-y-2 pl-6 text-base leading-8">
+                      <li>ISO 9000:2015 Quality management systems - Fundamentals and vocabulary</li>
+                      <li>ISO 9001:2015 Quality management systems - Requirements</li>
                       <li>Internal Standard Operating Procedures (SOPs) as listed in the Master Document Index</li>
                     </ul>
-                  </div>
+                  </section>
 
-                  <div className="space-y-4 pt-4">
-                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-3">
-                      <span className="w-8 h-8 rounded bg-slate-900 text-white flex items-center justify-center text-xs">3.0</span>
-                      Terms and Definitions
-                    </h2>
-                    <p className="text-slate-600 leading-relaxed indent-8">
+                  <section>
+                    <h4 className="text-2xl font-semibold text-slate-900">3. Terms and Definitions</h4>
+                    <p className="mt-2 text-base leading-8">
                       For the purposes of this document, the terms and definitions given in ISO 9000:2015 apply. Specific internal acronyms are defined in the Enterprise Glossary (DOC-GLOS-01).
                     </p>
-                  </div>
-                </section>
+                  </section>
+                </div>
               </div>
             </CardContent>
-            
-            <div className="h-20 bg-slate-50 border-t border-gray-100 mt-20 flex items-center justify-center gap-8">
-              <div className="flex flex-col items-center">
-                <div className="text-[10px] uppercase font-bold text-gray-400">Page</div>
-                <div className="text-sm font-bold text-slate-900">1 / 24</div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" className="h-8 w-8 rounded bg-white border-gray-200">
-                  <Minus className="w-3 h-3" />
-                </Button>
-                <div className="text-xs font-bold w-12 text-center">100%</div>
-                <Button variant="outline" size="icon" className="h-8 w-8 rounded bg-white border-gray-200">
-                  <Plus className="w-3 h-3" />
-                </Button>
-              </div>
-            </div>
           </Card>
         </div>
 
-        <div className="lg:col-span-4 space-y-6">
+        <div className="xl:col-span-4 space-y-4">
           <Card className="border-gray-200 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -249,6 +218,10 @@ export default function DocumentDetail() {
               </div>
             </CardContent>
           </Card>
+          <div className="space-y-2">
+            <Button className="h-11 w-full bg-indigo-600 hover:bg-indigo-700 text-white">Edit Document</Button>
+            <Button variant="outline" className="h-11 w-full border-gray-200">Create New Version</Button>
+          </div>
         </div>
       </div>
     </div>
