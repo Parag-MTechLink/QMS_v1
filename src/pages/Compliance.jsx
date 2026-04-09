@@ -289,20 +289,6 @@ export default function Compliance() {
                </div>
             </CardContent>
           </Card>
-
-          {/* Bottom Card in sidebar */}
-          <Card className="border-gray-200 bg-slate-900 p-6 space-y-4">
-             <div className="flex flex-col gap-1">
-               <div className="text-[10px] uppercase font-black tracking-[0.2em] text-blue-400">System Health Stable</div>
-               <div className="text-lg font-black text-white leading-tight">AI Governance Online</div>
-             </div>
-             <p className="text-xs text-slate-400 leading-relaxed">
-               11 actions recommended this week across document review and audit readiness.
-             </p>
-             <Button className="w-full bg-white text-slate-900 hover:bg-blue-50 font-black text-[10px] uppercase tracking-widest h-10 transition-all">
-               View Recommendations
-             </Button>
-          </Card>
         </div>
       </div>
     </div>

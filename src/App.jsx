@@ -9,8 +9,13 @@ import Reviews from "./pages/Reviews";
 import Compliance from "./pages/Compliance";
 import AuditLog from "./pages/AuditLog";
 import ReviewDetail from "./pages/ReviewDetail";
+import Approvals from "./pages/Approvals";
+import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
+
 
 function Layout({ children }) {
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
       <Sidebar />
@@ -87,6 +92,30 @@ function App() {
               <Compliance />
             </Layout>
           } 
+        />
+        <Route
+          path="/approvals"
+          element={
+            <Layout>
+              <Approvals />
+            </Layout>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <Layout>
+              <Reports />
+            </Layout>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <Layout>
+              <Settings />
+            </Layout>
+          }
         />
         {/* Fallback for other routes */}
         <Route 
