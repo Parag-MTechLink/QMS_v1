@@ -8,7 +8,8 @@ export const ROLES = {
   DCA: 'DCA',
   PA: 'PA',
   RM: 'RM',
-  AUDITOR: 'Auditor'
+  INTERNAL_AUDITOR: 'Internal Auditor',
+  EXTERNAL_AUDITOR: 'External Auditor'
 };
 
 export const ROLE_LABELS = {
@@ -19,7 +20,8 @@ export const ROLE_LABELS = {
   [ROLES.DCA]: 'DCA (Doc Control Admin)',
   [ROLES.PA]: 'PA (Platform Admin)',
   [ROLES.RM]: 'RM (Records Manager)',
-  [ROLES.AUDITOR]: 'Auditor'
+  [ROLES.INTERNAL_AUDITOR]: 'Internal Auditor',
+  [ROLES.EXTERNAL_AUDITOR]: 'External Auditor'
 };
 
 export const REGISTER_LABELS = {

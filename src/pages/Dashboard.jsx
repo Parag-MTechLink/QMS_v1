@@ -8,7 +8,6 @@ import {
   CheckCircle, 
   AlertTriangle, 
   Clock, 
-  Zap, 
   Activity, 
   ShieldCheck,
   ArrowRight,
@@ -18,60 +17,84 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-const pipelineStages = [
-  { icon: FileEdit, label: "Drafting", count: 24, status: "Queued", color: "blue" },
-  { icon: Eye, label: "Review", count: 12, status: "Pending", color: "amber" },
-  { icon: UserCheck, label: "Approval", count: 5, status: "Escalated", color: "purple" },
-  { icon: GraduationCap, label: "Training", count: 38, status: "Assigned", color: "indigo" },
-  { icon: CheckCircle, label: "Effective", count: 1204, status: "Compliant", color: "green" },
-];
-
-const insights = [
-  {
-    icon: AlertTriangle,
-    title: "Standards update requires controlled document changes",
-    description: "ISO 9001 revisions affect 3 SOPs and 1 work instruction tied to supplier qualification workflows.",
-    variant: "warning",
-    action: "Check"
-  },
-  {
-    icon: Clock,
-    title: "Review deadlines are approaching overdue state",
-    description: "QM-001 and SOP-004 are within 48 hours of escalation and could affect upcoming audit evidence readiness.",
-    variant: "info",
-    action: "Notify owners"
-  },
-  {
-    icon: Zap,
-    title: "Workflow inefficiency detected in approval handoff",
-    description: "Average approval cycle time for procedures increased by 2.4 days after legal review was added as a sequential step.",
-    variant: "error",
-    action: "Analyze"
-  }
-];
+import { useDocumentStore, ROLES } from "@/store/useDocumentStore";
 
 export default function Dashboard() {
+  const { userRole, documents } = useDocumentStore();
+
+  const getPipelineStages = () => {
+    const baseStages = [
+      { icon: FileEdit, label: "Drafting", count: documents.filter(d => d.stateCode === 'S0').length, status: "Queued", color: "blue", roles: [ROLES.DO, ROLES.DCA] },
+      { icon: Eye, label: "Review", count: documents.filter(d => d.stateCode === 'S1').length, status: "Pending", color: "amber", roles: [ROLES.REV, ROLES.DCA, ROLES.INTERNAL_AUDITOR] },
+      { icon: UserCheck, label: "Approval", count: documents.filter(d => d.stateCode === 'S3').length, status: "Required", color: "purple", roles: [ROLES.APP, ROLES.DCA] },
+      { icon: GraduationCap, label: "Training", count: 38, status: "Assigned", color: "indigo", roles: [ROLES.DO, ROLES.DCA] },
+      { icon: CheckCircle, label: "Effective", count: documents.filter(d => d.stateCode === 'S5').length, status: "Active", color: "green", roles: Object.values(ROLES) },
+    ];
+    return baseStages.filter(s => s.roles.includes(userRole));
+  };
+
+  const getInsights = () => {
+    const allInsights = [
+      {
+        icon: AlertTriangle,
+        title: "Upcoming Audit Readiness",
+        description: "External audit scheduled in 12 days. 3 'Released' documents missing verification signatures.",
+        variant: "warning",
+        action: "Review",
+        roles: [ROLES.INTERNAL_AUDITOR, ROLES.EXTERNAL_AUDITOR, ROLES.DCA]
+      },
+      {
+        icon: Clock,
+        title: "Overdue Review Items",
+        description: "SOP-ENG-12 is 48 hours past its review deadline. Escalation triggered.",
+        variant: "error",
+        action: "Acknowledge",
+        roles: [ROLES.DO, ROLES.REV, ROLES.DCA]
+      },
+      {
+        icon: ShieldCheck,
+        title: "Compliance Gap Detected",
+        description: "Clause 7.5.3 (Control of documented information) requires updated evidence for External Docs.",
+        variant: "info",
+        action: "Fix gap",
+        roles: [ROLES.INTERNAL_AUDITOR, ROLES.DCA]
+      }
+    ];
+    return allInsights.filter(i => i.roles.includes(userRole));
+  };
+
+  const pipelineStages = getPipelineStages();
+  const insights = getInsights();
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-10">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="px-2 py-0.5 bg-green-50 text-green-700 text-[10px] font-bold uppercase rounded border border-green-200 tracking-wider">Operational Overview</span>
+            <span className="px-2 py-0.5 bg-green-50 text-green-700 text-[10px] font-bold uppercase rounded border border-green-200 tracking-wider">
+              {userRole === ROLES.INTERNAL_AUDITOR || userRole === ROLES.EXTERNAL_AUDITOR ? 'Audit Snapshot' : 'Operational Overview'}
+            </span>
             <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-bold uppercase rounded border border-slate-200 tracking-wider">QMS</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight sm:text-3xl">Quality Operations</h1>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight sm:text-3xl">
+            {userRole === ROLES.INTERNAL_AUDITOR || userRole === ROLES.EXTERNAL_AUDITOR ? 'Compliance Command' : 'Quality Operations'}
+          </h1>
           <p className="text-sm text-gray-500 max-w-2xl leading-relaxed">
-            Monitor document lifecycle throughput, review risks, and compliance posture at a glance.
+            {userRole === ROLES.INTERNAL_AUDITOR || userRole === ROLES.EXTERNAL_AUDITOR 
+              ? 'Analyze compliance posture, verify document integrity, and track environmental risk.'
+              : 'Monitor document lifecycle throughput, review risks, and compliance posture at a glance.'}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" className="h-9 border-gray-200 bg-white text-xs font-semibold">
-            Export snapshot
+            Export {userRole.includes('AUDITOR') ? 'Audit Log' : 'Snapshot'}
           </Button>
-          <Button className="h-9 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm">
-            Create document
-          </Button>
+          {(userRole === ROLES.DO || userRole === ROLES.DCA) && (
+            <Button className="h-9 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm">
+              Create document
+            </Button>
+          )}
         </div>
       </div>
 
@@ -164,7 +187,7 @@ export default function Dashboard() {
         <div className="space-y-6">
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-indigo-600" />
+              <Activity className="w-4 h-4 text-indigo-600" />
               <h2 className="text-lg font-bold text-gray-900">Insights</h2>
             </div>
             <span className="text-xs text-gray-400 font-medium tracking-tight">Prioritized by impact</span>

@@ -37,8 +37,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { useDocumentStore, ROLE_LABELS, REGISTER_LABELS, DOC_TYPE_LABELS } from "@/store/useDocumentStore";
-// import { useAIPrecheck } from "@/hooks/useAIHooks";
+import { useDocumentStore, ROLES, ROLE_LABELS, REGISTER_LABELS, DOC_TYPE_LABELS } from "@/store/useDocumentStore";
+
 
 export default function Documents() {
   const navigate = useNavigate();
@@ -49,7 +49,7 @@ export default function Documents() {
 
   // New Document Wizard State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeStep, setActiveStep] = useState(1); // 1: Metadata, 2: Content & AI
+  const [activeStep, setActiveStep] = useState(1); // 1: Metadata, 2: Content & Upload
   const [newDocName, setNewDocName] = useState("");
   const [newDocType, setNewDocType] = useState("SOP");
   const [newDocDept, setNewDocDept] = useState("Quality Assurance");
@@ -58,7 +58,7 @@ export default function Documents() {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  // const { runCheck, isAnalyzing, report } = useAIPrecheck();
+
 
   useEffect(() => {
     fetchDocuments();
@@ -74,14 +74,17 @@ export default function Documents() {
       const matchesStatus = statusFilter === "All Statuses" || doc.status.includes(statusFilter);
       const matchesRegister = doc.register === activeRegister;
       
+      // Role-based restriction: DO only sees their own by default
+      const matchesRole = (userRole === ROLES.DO) ? (doc.owner === "Alex Morgan" || doc.owner === "Current User") : true;
+
       // VAULT Logic: Only show S7 in VAULT, exclude S7 from MDR/CCR/EDR
       if (activeRegister === 'VAULT') {
-        return matchesSearch && matchesStatus && doc.stateCode === 'S7';
+        return matchesSearch && matchesStatus && doc.stateCode === 'S7' && matchesRole;
       }
       
-      return matchesSearch && matchesStatus && matchesRegister && doc.stateCode !== 'S7';
+      return matchesSearch && matchesStatus && matchesRegister && doc.stateCode !== 'S7' && matchesRole;
     });
-  }, [documents, searchTerm, statusFilter, activeRegister]);
+  }, [documents, searchTerm, statusFilter, activeRegister, userRole]);
 
   const stats = useMemo(() => {
     return {
@@ -163,7 +166,7 @@ export default function Documents() {
           { id: "CCR", label: REGISTER_LABELS.CCR, icon: Clock },
           { id: "EDR", label: REGISTER_LABELS.EDR, icon: ExternalLink },
           { id: "VAULT", label: REGISTER_LABELS.VAULT, icon: Layers, isRestricted: true }
-        ].filter(tab => !tab.isRestricted || (userRole === 'RM' || userRole === 'Auditor')).map((tab) => (
+        ].filter(tab => !tab.isRestricted || (userRole === 'RM' || userRole === 'INTERNAL_AUDITOR' || userRole === 'EXTERNAL_AUDITOR')).map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveRegister(tab.id)}

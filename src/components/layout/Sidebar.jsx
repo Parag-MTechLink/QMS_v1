@@ -16,21 +16,22 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDocumentStore, ROLES, ROLE_LABELS } from "@/store/useDocumentStore";
-
-const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: FileText, label: "Documents", href: "/documents" },
-  { icon: FileCheck, label: "Reviews", href: "/reviews" },
-  { icon: CheckCircle2, label: "Approvals", href: "/approvals" },
-  { icon: ClipboardCheck, label: "Audits", href: "/audits" },
-  { icon: ShieldCheck, label: "Compliance", href: "/compliance" },
-  { icon: BarChart3, label: "Reports", href: "/reports" },
-  { icon: Settings, label: "Settings", href: "/settings" },
-];
-
 export const Sidebar = () => {
   const { userRole, setUserRole } = useDocumentStore();
   const [isRoleMenuOpen, setIsRoleMenuOpen] = React.useState(false);
+
+  const navItems = [
+    { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", roles: Object.values(ROLES) },
+    { icon: FileText, label: "Documents", href: "/documents", roles: Object.values(ROLES) },
+    { icon: FileCheck, label: "Reviews", href: "/reviews", roles: [ROLES.DO, ROLES.REV, ROLES.DCA, ROLES.PA, ROLES.INTERNAL_AUDITOR, ROLES.EXTERNAL_AUDITOR] },
+    { icon: CheckCircle2, label: "Approvals", href: "/approvals", roles: [ROLES.APP, ROLES.DCA, ROLES.PA, ROLES.INTERNAL_AUDITOR, ROLES.EXTERNAL_AUDITOR] },
+    { icon: ClipboardCheck, label: "Audits", href: "/audits", roles: [ROLES.INTERNAL_AUDITOR, ROLES.EXTERNAL_AUDITOR, ROLES.DCA, ROLES.PA] },
+    { icon: ShieldCheck, label: "Compliance", href: "/compliance", roles: [ROLES.INTERNAL_AUDITOR, ROLES.EXTERNAL_AUDITOR, ROLES.DCA, ROLES.PA, ROLES.DO] },
+    { icon: BarChart3, label: "Reports", href: "/reports", roles: [ROLES.DCA, ROLES.PA, ROLES.INTERNAL_AUDITOR, ROLES.EXTERNAL_AUDITOR, ROLES.APP] },
+    { icon: Settings, label: "Settings", href: "/settings", roles: [ROLES.DCA, ROLES.PA] },
+  ];
+
+  const filteredNavItems = navItems.filter(item => item.roles.includes(userRole));
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 border-r border-gray-200 bg-white flex flex-col z-50">
@@ -43,7 +44,7 @@ export const Sidebar = () => {
         </div>
 
         <nav className="space-y-1">
-          {navItems.map((item) => (
+          {filteredNavItems.map((item) => (
             <NavLink
               key={item.label}
               to={item.href}

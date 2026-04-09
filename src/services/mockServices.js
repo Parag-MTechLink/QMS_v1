@@ -20,7 +20,7 @@ export const workflowService = {
       'S2': { 'SUBMIT': 'S1' },
       'S3': { 'APPROVE': 'S4', 'REJECT': 'S2' },
       'S4': { 'RELEASE': 'S5' },
-      'S5': { 'REVISE': 'S0', 'OBSOLETE': 'S6' },
+      'S5': { 'REVISE': 'S0', 'OBSOLETE': 'S6', 'AUDIT_FAIL': 'S2' },
       'S6': { 'ARCHIVE': 'S7' },
       'S7': {}
     };
@@ -73,6 +73,17 @@ export const workflowService = {
     }
 
     // PO Exception / Escalation (Can move S3 -> S5 directly if authorized)
+    // Internal Auditor - Can comment on anything
+    if (role === 'INTERNAL_AUDITOR') {
+      actions.push({ id: 'RAISE_OBSERVATION', label: 'Raise Observation', variant: 'outline' });
+    }
+
+    // External Auditor - Can verify effective docs or reject them
+    if (role === 'EXTERNAL_AUDITOR' && (stateCode === 'S5' || stateCode === 'S6')) {
+      actions.push({ id: 'AUDIT_PASS', label: 'Formal Audit Sign-off', variant: 'primary' });
+      actions.push({ id: 'AUDIT_FAIL', label: 'Raise Major Non-Conformity', variant: 'destructive' });
+    }
+
     if (role === 'PO' && (stateCode === 'S3' || stateCode === 'S4')) {
       actions.push({ id: 'RELEASE', label: 'PO Emergency Release', variant: 'secondary' });
     }
@@ -83,18 +94,3 @@ export const workflowService = {
 
 
 
-export const aiService = {
-  getPrecheckReport: async (content) => {
-    await delay(1500);
-    return {
-      risks: [
-        { id: 1, type: 'CRITICAL', title: 'Missing ISO 9001:2015 link', description: 'Section 4 does not reference the normative standard.' },
-        { id: 2, type: 'WARNING', title: 'Vague Responsibilities', description: 'The role of "Quality Lead" is not defined in the glossary.' }
-      ],
-      gaps: [
-        { id: 1, title: 'Missing Annex A', description: 'Typical QMS manuals include an Annex for process maps.' }
-      ],
-      complianceScore: 78
-    };
-  }
-};

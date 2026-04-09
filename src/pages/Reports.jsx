@@ -1,5 +1,5 @@
 import React from "react";
-import { BarChart3, Download, Filter, LineChart, PieChart, ShieldCheck, Zap } from "lucide-react";
+import { BarChart3, Download, Filter, LineChart, PieChart, ShieldCheck, Activity } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,7 +55,7 @@ export default function Reports() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MiniStat icon={LineChart} label="Avg. Review Time" value="4.2 days" delta="↓ 12%" variant="green" />
         <MiniStat icon={PieChart} label="Docs in Review" value="56" delta="↑ 5%" variant="amber" />
-        <MiniStat icon={Zap} label="Overdue Reviews" value="8" delta="↑ 2" variant="amber" />
+        <MiniStat icon={Activity} label="Overdue Reviews" value="8" delta="↑ 2" variant="amber" />
         <MiniStat icon={ShieldCheck} label="Training Rate" value="94%" delta="↑ 3%" variant="blue" />
       </div>
 

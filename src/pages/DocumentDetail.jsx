@@ -11,7 +11,6 @@ import {
   FileText,
   Activity,
   Send,
-  Zap,
   Edit2,
   History,
   Layers,
@@ -31,10 +30,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  useAIPrecheck, 
-  useAIReworkSummary 
-} from "@/hooks/useAIHooks";
 import { useDocumentStore, ROLES, ROLE_LABELS, DOC_TYPE_LABELS } from "@/store/useDocumentStore";
 import { workflowService } from "@/services/mockServices";
 import { cn } from "@/lib/utils";
@@ -51,7 +46,8 @@ export default function DocumentDetail() {
     updateDocumentContent,
     comments,
     addComment,
-    auditLogs
+    auditLogs,
+    addAuditEntry
   } = useDocumentStore();
 
   const [activeTab, setActiveTab] = useState("document");
@@ -73,9 +69,9 @@ export default function DocumentDetail() {
   const [editWatermark, setEditWatermark] = useState("");
   const [editContent, setEditContent] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [activeAction, setActiveAction] = useState(null);
 
-  const { runCheck, isAnalyzing, report, clearReport } = useAIPrecheck();
-  const { generateSummary, isGenerating, summary } = useAIReworkSummary();
+
 
   useEffect(() => {
     setSelectedDocument(id);
@@ -96,11 +92,7 @@ export default function DocumentDetail() {
     }
   }, [selectedDocument]);
 
-  useEffect(() => {
-    if (selectedDocument?.status === 'Draft' && (comments[selectedDocument.id]?.length || 0) > 0 && !summary && !isGenerating) {
-      generateSummary(comments[selectedDocument.id]);
-    }
-  }, [selectedDocument?.status, comments, generateSummary, summary, isGenerating]);
+
 
   const allVersions = React.useMemo(() => {
     if (!selectedDocument || !documents) return [];
@@ -132,6 +124,13 @@ export default function DocumentDetail() {
 
   const handleAction = (actionId) => {
     if (actionId === 'APPROVE' && selectedDocument.stateCode === 'S3' && userRole === 'APP') {
+      setActiveAction('APPROVE');
+      setIsSigning(true);
+      return;
+    }
+
+    if (actionId === 'AUDIT_PASS' && userRole === 'EXTERNAL_AUDITOR') {
+      setActiveAction('AUDIT_PASS');
       setIsSigning(true);
       return;
     }
@@ -143,11 +142,23 @@ export default function DocumentDetail() {
     }
 
     const nextStateCode = workflowService.getNextStatus(selectedDocument.stateCode, actionId);
-    const newId = transitionStatus(selectedDocument.id, nextStateCode);
-    
-    // If a new record was created (Revision case), navigate to it
-    if (newId && typeof newId === 'string' && newId !== selectedDocument.id) {
-      navigate(`/documents/${newId}`);
+    if (nextStateCode !== selectedDocument.stateCode) {
+      const newId = transitionStatus(selectedDocument.id, nextStateCode);
+      if (newId && typeof newId === 'string' && newId !== selectedDocument.id) {
+        navigate(`/documents/${newId}`);
+      }
+    } else {
+      // If it's just a loggable action like RAISE_OBSERVATION or RAISE_NC
+      if (actionId === 'RAISE_OBSERVATION') {
+        addAuditEntry(selectedDocument.id, { 
+          user: `Role: ${userRole}`, 
+          action: "OBSERVATION", 
+          detail: "Internal Auditor raised a process observation." 
+        });
+      } else if (actionId === 'AUDIT_FAIL') {
+        // External auditor rejecting the doc - move to rework
+        transitionStatus(selectedDocument.id, 'S2');
+      }
     }
     
     setIsEditing(false);
@@ -164,9 +175,20 @@ export default function DocumentDetail() {
 
   const handleFinalSign = () => {
     if (!signatureToken.trim()) return;
-    transitionStatus(selectedDocument.id, 'S4');
+    
+    if (activeAction === 'APPROVE') {
+      transitionStatus(selectedDocument.id, 'S4');
+    } else if (activeAction === 'AUDIT_PASS') {
+      addAuditEntry(selectedDocument.id, { 
+        user: `Role: ${userRole}`, 
+        action: "AUDIT_VERIFIED", 
+        detail: "Formally verified by External Auditor under compliance protocol." 
+      });
+    }
+
     setIsSigning(false);
     setSignatureToken("");
+    setActiveAction(null);
   };
 
   const handleSaveEdit = () => {
@@ -322,16 +344,7 @@ export default function DocumentDetail() {
           <Button variant="outline" size="sm" className="h-9 border-gray-200">
             <Download className="w-4 h-4" />
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className={`h-9 border-indigo-100 text-indigo-600 hover:bg-indigo-50 ${isAnalyzing ? 'animate-pulse' : ''}`}
-            onClick={() => runCheck(editContent)}
-            disabled={isAnalyzing}
-          >
-            <Zap className={`w-4 h-4 mr-2 ${isAnalyzing ? 'fill-indigo-600' : ''}`} />
-            {isAnalyzing ? 'AI Analyzing...' : 'AI Pre-check'}
-          </Button>
+
         </div>
       </div>
 
@@ -450,7 +463,7 @@ export default function DocumentDetail() {
                     onChange={(e) => setSignatureToken(e.target.value)}
                   />
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-20">
-                    <Zap className="w-5 h-5 text-indigo-600" />
+                    <Activity className="w-5 h-5 text-indigo-600" />
                   </div>
                 </div>
               </div>
@@ -484,57 +497,7 @@ export default function DocumentDetail() {
         </Dialog>
       )}
 
-      {summary && (
-        <Card className="border-amber-100 bg-amber-50/30 overflow-hidden animate-in d-300">
-          <CardHeader className="py-3 px-5 border-b border-amber-100 flex flex-row items-center justify-between">
-            <CardTitle className="text-sm font-bold text-amber-900 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-amber-600" />
-              AI Rework Synthesis
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-5">
-            <p className="text-xs text-amber-900 leading-relaxed font-medium italic">" {summary} "</p>
-          </CardContent>
-        </Card>
-      )}
 
-      {report && (
-        <Card className="border-indigo-100 bg-indigo-50/30 overflow-hidden">
-          <CardHeader className="py-3 px-5 border-b border-indigo-100 flex flex-row items-center justify-between font-bold text-indigo-900 flex items-center gap-2">
-            <CardTitle className="text-sm font-bold text-indigo-900 flex items-center gap-2">
-              <Zap className="w-4 h-4 text-indigo-600" />
-              AI Compliance Analysis
-            </CardTitle>
-            <Button variant="ghost" size="sm" className="h-6 text-[10px] text-indigo-600" onClick={clearReport}>Dismiss</Button>
-          </CardHeader>
-          <CardContent className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-3">
-              <h4 className="text-[10px] font-bold uppercase tracking-wider text-indigo-900/60">Risk Profile</h4>
-              {report.risks.map(risk => (
-                <div key={risk.id} className="flex gap-3 bg-white/60 p-3 rounded-lg border border-indigo-50">
-                  <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${risk.type === 'CRITICAL' ? 'bg-red-500' : 'bg-amber-500'}`} />
-                  <div>
-                    <div className="text-xs font-bold text-slate-900">{risk.title}</div>
-                    <div className="text-[10px] text-slate-600">{risk.description}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="space-y-3">
-              <h4 className="text-[10px] font-bold uppercase tracking-wider text-indigo-900/60">Gap Analysis</h4>
-              {report.gaps.map(gap => (
-                <div key={gap.id} className="flex gap-3 bg-white/60 p-3 rounded-lg border border-indigo-50">
-                  <div className="w-2 h-2 rounded-full mt-1.5 shrink-0 bg-blue-500" />
-                  <div>
-                    <div className="text-xs font-bold text-slate-900">{gap.title}</div>
-                    <div className="text-[10px] text-slate-600">{gap.description}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
         <div className="xl:col-span-8 space-y-6">
@@ -874,7 +837,7 @@ export default function DocumentDetail() {
                       'bg-white border-slate-200 text-slate-300'
                     )}>
                       {step.state === 'done' ? <CheckCircle2 className="w-5 h-5" /> : 
-                       step.state === 'active' ? <Zap className="w-4 h-4 animate-pulse fill-white" /> : 
+                       step.state === 'active' ? <Activity className="w-4 h-4 animate-pulse fill-white" /> : 
                        <span className="text-xs font-bold">{idx + 1 + offset}</span>}
                     </div>
                     <div className="flex-1 flex items-center justify-between">

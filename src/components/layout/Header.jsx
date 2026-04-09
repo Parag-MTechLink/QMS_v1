@@ -11,7 +11,9 @@ export const Header = () => {
     { id: 'DO', label: 'Owner', full: 'Document Owner' },
     { id: 'REV', label: 'Review', full: 'Reviewer' },
     { id: 'APP', label: 'Approve', full: 'Approver' },
-    { id: 'DCA', label: 'Admin', full: 'Document Control Admin' }
+    { id: 'DCA', label: 'Admin', full: 'Document Control Admin' },
+    { id: 'INTERNAL_AUDITOR', label: 'I-Audit', full: 'Internal Auditor' },
+    { id: 'EXTERNAL_AUDITOR', label: 'E-Audit', full: 'External Auditor' }
   ];
 
   return (
@@ -37,10 +39,12 @@ export const Header = () => {
       </div>
 
       <div className="flex items-center gap-3">
-        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2 rounded-md shadow-sm">
-          <Plus className="w-4 h-4" />
-          New Document
-        </Button>
+        {(userRole === 'DO' || userRole === 'DCA') && (
+          <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2 rounded-md shadow-sm">
+            <Plus className="w-4 h-4" />
+            New Document
+          </Button>
+        )}
 
         <div className="h-6 w-px bg-gray-200 mx-1" />
 

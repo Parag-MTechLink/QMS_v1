@@ -12,9 +12,7 @@ import {
   FileText,
   BadgeAlert,
   Search,
-  Sparkles,
-  RefreshCcw,
-  Zap
+  RefreshCcw
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,7 +47,7 @@ export default function Compliance() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <div className="lg:col-span-9 space-y-8">
+        <div className="lg:col-span-12 space-y-8">
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card className="border-gray-200">
@@ -78,7 +76,6 @@ export default function Compliance() {
                   <span className="text-2xl font-black text-slate-900">8</span>
                   <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-gray-400">
                     Monitored Standards
-                    <span className="text-green-600 flex items-center h-min mt-0.5"><Zap className="w-2.5 h-2.5 fill-current" />+1</span>
                   </div>
                 </div>
               </CardContent>
@@ -112,7 +109,6 @@ export default function Compliance() {
                   <span className="text-2xl font-black text-slate-900">12</span>
                   <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-gray-400">
                     Identified Gaps
-                    <span className="text-red-600 flex items-center h-min mt-0.5"><Zap className="w-2.5 h-2.5 fill-current" />+3</span>
                   </div>
                 </div>
               </CardContent>
@@ -240,56 +236,7 @@ export default function Compliance() {
           </div>
         </div>
 
-        <div className="lg:col-span-3 space-y-6">
-          <Card className="border-gray-200 shadow-xl shadow-slate-200/50 bg-white sticky top-20">
-            <CardHeader className="pb-2 border-b border-gray-50 flex flex-row items-center justify-between">
-               <CardTitle className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] flex items-center gap-2">
-                 <Sparkles className="w-3.5 h-3.5 text-blue-500" />
-                 AI Insights
-               </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 space-y-4">
-               {/* Gap Detected Alert */}
-               <div className="p-4 border-l-4 border-red-500 bg-red-50/50 rounded-r-lg space-y-1.5 transition-all hover:bg-red-50">
-                  <div className="flex items-center gap-2 mb-1">
-                    <BadgeAlert className="w-4 h-4 text-red-600" />
-                    <span className="text-xs font-black text-red-900 uppercase tracking-wide">Gap Detected</span>
-                  </div>
-                  <p className="text-[11px] font-medium text-red-700 leading-relaxed">
-                    Document <span className="font-black">POL-ENV-01</span> needs update to map to ISO 14001 Clause 8.2 (Emergency Response). Last updated 18 months ago.
-                  </p>
-               </div>
 
-               {/* Standard Update Alert */}
-               <div className="p-4 border-l-4 border-amber-500 bg-amber-50/50 rounded-r-lg space-y-1.5 transition-all hover:bg-amber-50">
-                  <div className="flex items-center gap-2 mb-1">
-                    <RefreshCcw className="w-4 h-4 text-amber-600" />
-                    <span className="text-xs font-black text-amber-900 uppercase tracking-wide">Standard Update</span>
-                  </div>
-                  <p className="text-[11px] font-medium text-amber-700 leading-relaxed">
-                    ISO 27001:2022 transition deadline approaching. 14 documents still require review against new Annex A controls.
-                  </p>
-               </div>
-
-               {/* Optimization Alert */}
-               <div className="p-4 border-l-4 border-green-500 bg-green-50/50 rounded-r-lg space-y-1.5 transition-all hover:bg-green-50">
-                  <div className="flex items-center gap-2 mb-1">
-                    <CheckCircle2 className="w-4 h-4 text-green-600" />
-                    <span className="text-xs font-black text-green-900 uppercase tracking-wide">Optimization</span>
-                  </div>
-                  <p className="text-[11px] font-medium text-green-700 leading-relaxed">
-                    Found 3 duplicate policies covering ISO 9001 Clause 7.2. Consolidating could improve compliance efficiency.
-                  </p>
-               </div>
-
-               <div className="pt-4 mt-4 border-t border-gray-100 flex justify-center">
-                 <Button variant="outline" className="w-full text-[10px] font-black uppercase tracking-widest h-10 border-gray-200 text-gray-500 hover:text-blue-600 transition-all">
-                   View All Insights
-                 </Button>
-               </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   );

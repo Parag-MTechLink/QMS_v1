@@ -13,9 +13,9 @@ import Approvals from "./pages/Approvals";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 
+import { useDocumentStore, ROLES } from "./store/useDocumentStore";
 
 function Layout({ children }) {
-
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
       <Sidebar />
@@ -29,6 +29,14 @@ function Layout({ children }) {
   );
 }
 
+const PrivateRoute = ({ children, allowedRoles }) => {
+  const { userRole } = useDocumentStore();
+  if (allowedRoles && !allowedRoles.includes(userRole)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <Layout>{children}</Layout>;
+};
+
 function App() {
   return (
     <Router>
@@ -40,81 +48,81 @@ function App() {
         <Route 
           path="/dashboard" 
           element={
-            <Layout>
+            <PrivateRoute allowedRoles={Object.values(ROLES)}>
               <Dashboard />
-            </Layout>
+            </PrivateRoute>
           } 
         />
         <Route 
           path="/documents" 
           element={
-            <Layout>
+            <PrivateRoute allowedRoles={Object.values(ROLES)}>
               <Documents />
-            </Layout>
+            </PrivateRoute>
           } 
         />
         <Route 
           path="/documents/:id" 
           element={
-            <Layout>
+            <PrivateRoute allowedRoles={Object.values(ROLES)}>
               <DocumentDetail />
-            </Layout>
+            </PrivateRoute>
           } 
         />
         <Route 
           path="/documents/:id/review" 
           element={
-            <Layout>
+            <PrivateRoute allowedRoles={[ROLES.DO, ROLES.REV, ROLES.DCA]}>
               <ReviewDetail />
-            </Layout>
+            </PrivateRoute>
           } 
         />
         <Route 
           path="/reviews" 
           element={
-            <Layout>
+            <PrivateRoute allowedRoles={[ROLES.DO, ROLES.REV, ROLES.DCA, ROLES.PA, ROLES.INTERNAL_AUDITOR, ROLES.EXTERNAL_AUDITOR]}>
               <Reviews />
-            </Layout>
+            </PrivateRoute>
           } 
         />
         <Route 
           path="/audits" 
           element={
-            <Layout>
+            <PrivateRoute allowedRoles={[ROLES.INTERNAL_AUDITOR, ROLES.EXTERNAL_AUDITOR, ROLES.DCA]}>
               <AuditLog />
-            </Layout>
+            </PrivateRoute>
           } 
         />
         <Route 
           path="/compliance" 
           element={
-            <Layout>
+            <PrivateRoute allowedRoles={[ROLES.INTERNAL_AUDITOR, ROLES.EXTERNAL_AUDITOR, ROLES.DCA, ROLES.DO]}>
               <Compliance />
-            </Layout>
+            </PrivateRoute>
           } 
         />
         <Route
           path="/approvals"
           element={
-            <Layout>
+            <PrivateRoute allowedRoles={[ROLES.APP, ROLES.DCA, ROLES.PA, ROLES.INTERNAL_AUDITOR, ROLES.EXTERNAL_AUDITOR]}>
               <Approvals />
-            </Layout>
+            </PrivateRoute>
           }
         />
         <Route
           path="/reports"
           element={
-            <Layout>
+            <PrivateRoute allowedRoles={[ROLES.DCA, ROLES.PA, ROLES.INTERNAL_AUDITOR, ROLES.EXTERNAL_AUDITOR, ROLES.APP]}>
               <Reports />
-            </Layout>
+            </PrivateRoute>
           }
         />
         <Route
           path="/settings"
           element={
-            <Layout>
+            <PrivateRoute allowedRoles={[ROLES.DCA, ROLES.PA]}>
               <Settings />
-            </Layout>
+            </PrivateRoute>
           }
         />
         {/* Fallback for other routes */}
