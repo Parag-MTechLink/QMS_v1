@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import SplashScreen from "./components/SplashScreen";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Sidebar } from "./components/layout/Sidebar";
 import { Header } from "./components/layout/Header";
@@ -38,7 +39,18 @@ const PrivateRoute = ({ children, allowedRoles }) => {
 };
 
 function App() {
+  const [showSplash, setShowSplash] = useState(
+    () => !sessionStorage.getItem("qms_splash_seen")
+  );
+
+  const handleSplashDismiss = () => {
+    sessionStorage.setItem("qms_splash_seen", "true");
+    setShowSplash(false);
+  };
+
   return (
+    <>
+      {showSplash && <SplashScreen onDismiss={handleSplashDismiss} />}
     <Router>
       <Routes>
         <Route 
@@ -132,6 +144,7 @@ function App() {
         />
       </Routes>
     </Router>
+    </>
   );
 }
 

@@ -44,7 +44,8 @@ export const STATES = {
   S1: { code: 'S1', label: 'Under Review', color: 'bg-blue-100 text-blue-600' },
   S2: { code: 'S2', label: 'Rework', color: 'bg-amber-100 text-amber-600' },
   S3: { code: 'S3', label: 'Under Approval', color: 'bg-indigo-100 text-indigo-600' },
-  S4: { code: 'S4', label: 'Approved-Pending Release', color: 'bg-purple-100 text-purple-600' },
+  S4: { code: 'S4', label: 'Approved-Pending Release', color: 'bg-indigo-100 text-indigo-600' },
+  S4_RM: { code: 'S4_RM', label: 'Pending RM Release', color: 'bg-orange-100 text-orange-600 shadow-sm border border-orange-200' },
   S5: { code: 'S5', label: 'Released', color: 'bg-emerald-100 text-emerald-600' },
   S6: { code: 'S6', label: 'Obsolete', color: 'bg-red-100 text-red-600' },
   S7: { code: 'S7', label: 'Archived', color: 'bg-gray-100 text-gray-600' }
@@ -108,6 +109,42 @@ const initialDocuments = [
     description: "Standardized form for conducting annual safety audits.",
     content: "Safety audit checklist items...",
     versionHistory: []
+  },
+  {
+    id: "SOP-QLTY-01-v2.0",
+    docNumber: "SOP-QLTY-01",
+    name: "Quality Audit Protocol",
+    type: "SOP",
+    status: "Approved-Pending Release",
+    stateCode: "S4",
+    register: "MDR",
+    owner: "James Reed",
+    version: "v2.0",
+    updated: new Date().toISOString(),
+    avatar: "JR",
+    department: "Quality Assurance",
+    description: "Protocol for conducting multi-departmental quality audits.",
+    content: "Step 1: Planning... Step 2: Execution...",
+    versionHistory: [
+      { version: "v1.0", date: "2023-01-01T10:00:00Z", comment: "Initial" }
+    ]
+  },
+  {
+    id: "SOP-QLTY-01-v1.0",
+    docNumber: "SOP-QLTY-01",
+    name: "Quality Audit Protocol (Old)",
+    type: "SOP",
+    status: "Released",
+    stateCode: "S5",
+    register: "MDR",
+    owner: "James Reed",
+    version: "v1.0",
+    updated: "2023-01-01T10:00:00Z",
+    avatar: "JR",
+    department: "Quality Assurance",
+    description: "Old version of the protocol.",
+    content: "Old steps...",
+    versionHistory: []
   }
 ];
 
@@ -123,8 +160,8 @@ const initialAuditLogs = {
     { id: 1, user: "Alex Morgan", action: "CREATED", detail: "Initial document creation", timestamp: "2023-01-01T10:00:00Z" },
     { id: 2, user: "James Reed", action: "TRANSITION", detail: "Under Review -> Released", timestamp: "2023-10-24T10:00:00Z" }
   ],
-  "SOP-ENG-12": [
-    { id: 1, user: "James Reed", action: "CREATED", detail: "Standard Operating Procedure template applied", timestamp: "2023-10-01T10:00:00Z" }
+  "SOP-QLTY-01-v2.0": [
+    { id: 1, user: "Approver", action: "TRANSITION", detail: "Under Approval -> Approved", timestamp: "2023-12-31T10:00:00Z" }
   ]
 };
 
@@ -133,13 +170,43 @@ export const useDocumentStore = create((set, get) => ({
   selectedDocument: null,
   comments: initialComments,
   auditLogs: initialAuditLogs,
-  userRole: ROLES.DO, // Default: Document Owner
+  observations: {},
+  nonConformities: {},
+  userRole: ROLES.RM, // Default: Records Manager for testing
   isLoading: false,
   error: null,
   mockSignature: null,
 
   setUserRole: (role) => set({ userRole: role }),
   setMockSignature: (signature) => set({ mockSignature: signature }),
+
+  addObservation: (docId, observation) => set((state) => {
+    const newObs = {
+      id: Math.random().toString(36).substr(2, 9),
+      timestamp: new Date().toISOString(),
+      ...observation
+    };
+    return {
+      observations: {
+        ...state.observations,
+        [docId]: [...(state.observations[docId] || []), newObs]
+      }
+    };
+  }),
+
+  addNC: (docId, nc) => set((state) => {
+    const newNC = {
+      id: Math.random().toString(36).substr(2, 9),
+      timestamp: new Date().toISOString(),
+      ...nc
+    };
+    return {
+      nonConformities: {
+        ...state.nonConformities,
+        [docId]: [...(state.nonConformities[docId] || []), newNC]
+      }
+    };
+  }),
 
   fetchDocuments: async () => {
     set({ isLoading: true });
@@ -176,8 +243,9 @@ export const useDocumentStore = create((set, get) => ({
         {
           ...doc,
           id: newId,
+          docNumber: doc.docNumber || newId,
           updated: new Date().toISOString(),
-          version: "v0.1",
+          version: "v1.0",
           status: "Draft",
           stateCode: "S0",
           register: "MDR",
@@ -190,14 +258,14 @@ export const useDocumentStore = create((set, get) => ({
     get().addAuditEntry(newId, { user: "System", action: ROLES.DO, detail: "Document registered in system (S0)" });
   },
 
-  updateDocumentContent: (id, content, description, changeSummary, name, type, department, header1, header2, index1, index2, watermark) => {
+  updateDocumentContent: (id, version, content, description, changeSummary, name, type, department, header1, header2, index1, index2, watermark) => {
     set((state) => {
       const updatedDocs = state.documents.map(doc => 
-        doc.id === id ? { ...doc, content, description, name, type, department, header1, header2, index1, index2, watermark, updated: new Date().toISOString() } : doc
+        doc.id === id ? { ...doc, version, content, description, name, type, department, header1, header2, index1, index2, watermark, updated: new Date().toISOString() } : doc
       );
       
       const updatedSelected = state.selectedDocument?.id === id 
-        ? { ...state.selectedDocument, content, description, name, type, department, header1, header2, index1, index2, watermark, updated: new Date().toISOString() } 
+        ? { ...state.selectedDocument, version, content, description, name, type, department, header1, header2, index1, index2, watermark, updated: new Date().toISOString() } 
         : state.selectedDocument;
 
       return {
@@ -213,7 +281,7 @@ export const useDocumentStore = create((set, get) => ({
     });
   },
 
-  transitionStatus: (id, targetStateCode) => {
+  transitionStatus: (id, targetStateCode, forcedMajor = false) => {
     const state = get();
     const doc = state.documents.find(d => d.id === id);
     if (!doc) return;
@@ -224,9 +292,9 @@ export const useDocumentStore = create((set, get) => ({
     const history = [...(doc.versionHistory || [])];
 
     // Versioning Logic for S0-S7 machine
-    if (targetStateCode === 'S5') { // Major release bump
-      const major = parseInt(version.substring(1).split('.')[0]);
-      version = `v${major + 1}.0`;
+    if (targetStateCode === 'S5') {
+      // Version persists from Draft to Released (no bump here anymore)
+      version = doc.version;
       history.push({ version, date: new Date().toISOString(), comment: "S5 Release Approval" });
     } else if (targetStateCode === 'S2') { // Rework bump
       const [vStr, mStr] = version.substring(1).split('.');
@@ -234,10 +302,21 @@ export const useDocumentStore = create((set, get) => ({
       version = `v${vStr}.${minor + 1}`;
     }
 
-    if (targetStateCode === 'S0' && oldStateCode === 'S5') {
+    if (targetStateCode === 'S0' && (oldStateCode === 'S5' || oldStateCode === 'S6')) {
       // REVISION CASE: Create a NEW concurrent document record
-      const major = version.substring(1).split('.')[0];
-      const newVersion = `v${major}.1`;
+      const parts = version.substring(1).split('.');
+      const majorNum = parseInt(parts[0]);
+      const minorNum = parseInt(parts[1] || 0);
+      
+      let newVersion;
+      if (oldStateCode === 'S6' || forcedMajor) {
+        // Major bump from Obsolete or forced by Process Owner
+        newVersion = `v${majorNum + 1}.0`;
+      } else {
+        // Minor bump from Released
+        newVersion = `v${majorNum}.${minorNum + 1}`;
+      }
+      
       const newId = `${doc.docNumber}-${newVersion}`;
       
       const newDoc = {
@@ -270,11 +349,22 @@ export const useDocumentStore = create((set, get) => ({
 
       // SUPERSEDE LOGIC: If a doc is released (S5), obsolete all previous Effective versions of same docNumber
       if (targetStateCode === 'S5') {
+        const releasedIds = [];
         updatedDocs = updatedDocs.map(d => {
           if (d.docNumber === doc.docNumber && d.id !== doc.id && d.stateCode === 'S5') {
+            releasedIds.push(d.id);
             return { ...d, stateCode: 'S6', status: STATES.S6.label, updated: new Date().toISOString() };
           }
           return d;
+        });
+
+        // Add explicit audit logs for each obsoleted version
+        releasedIds.forEach(oldId => {
+          state.addAuditEntry(oldId, {
+            user: `Role: ${state.userRole}`,
+            action: "OBSOLETED",
+            detail: `Document made Obsolete following the release of new version ${doc.version}.`
+          });
         });
       }
 

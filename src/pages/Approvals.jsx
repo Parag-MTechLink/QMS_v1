@@ -27,8 +27,25 @@ import { cn } from "@/lib/utils";
 export default function Approvals() {
   const { userRole, documents } = useDocumentStore();
   
-  // Dynamically filter documents in S3 (Under Approval) state
-  const approvalItems = documents.filter(doc => doc.stateCode === 'S3');
+  // Dynamically filter documents based on role
+  const approvalItems = documents.filter(doc => {
+    // Determine if doc has previous versions
+    const hasPrevious = documents.some(d => d.docNumber === doc.docNumber && d.id !== doc.id);
+    
+    // APP sees S3 (Under Approval)
+    if (doc.stateCode === 'S3' && userRole === ROLES.APP) return true;
+    
+    // DCA (Admin) sees S4 (Approved)
+    if (doc.stateCode === 'S4' && (userRole === ROLES.DCA || userRole === ROLES.PA)) return true;
+    
+    // RM (Records Manager) sees S4_RM (Handed over from Admin)
+    if (doc.stateCode === 'S4_RM' && (userRole === ROLES.RM || userRole === ROLES.PA)) return true;
+    
+    // Safety check for DCA/PA to see S3 as well
+    if (userRole === ROLES.DCA || userRole === ROLES.PA) return doc.stateCode === 'S3';
+
+    return false;
+  });
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">

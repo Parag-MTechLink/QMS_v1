@@ -73,7 +73,7 @@ export default function Documents() {
 
       const matchesStatus = statusFilter === "All Statuses" || doc.status.includes(statusFilter);
       const matchesRegister = doc.register === activeRegister;
-      
+
       // Role-based restriction: DO only sees their own by default
       const matchesRole = (userRole === ROLES.DO) ? (doc.owner === "Alex Morgan" || doc.owner === "Current User") : true;
 
@@ -81,7 +81,7 @@ export default function Documents() {
       if (activeRegister === 'VAULT') {
         return matchesSearch && matchesStatus && doc.stateCode === 'S7' && matchesRole;
       }
-      
+
       return matchesSearch && matchesStatus && matchesRegister && doc.stateCode !== 'S7' && matchesRole;
     });
   }, [documents, searchTerm, statusFilter, activeRegister, userRole]);
@@ -254,11 +254,11 @@ export default function Documents() {
               </div>
 
               {!uploadedFile ? (
-                <div 
+                <div
                   onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                   onDragLeave={() => setIsDragging(false)}
-                  onDrop={(e) => { 
-                    e.preventDefault(); 
+                  onDrop={(e) => {
+                    e.preventDefault();
                     setIsDragging(false);
                     const file = e.dataTransfer.files[0];
                     if (file) handleFileChange({ target: { files: [file] } });
@@ -293,9 +293,9 @@ export default function Documents() {
                       <span className="text-[10px] text-slate-400 uppercase font-medium">{uploadedFile.size}</span>
                     </div>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
                     onClick={() => setUploadedFile(null)}
                   >

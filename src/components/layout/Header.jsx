@@ -2,18 +2,19 @@ import React from "react";
 import { Bell, Plus, ChevronDown, UserCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useDocumentStore } from "@/store/useDocumentStore";
+import { useDocumentStore, ROLES } from "@/store/useDocumentStore";
 
 export const Header = () => {
   const { userRole, setUserRole } = useDocumentStore();
 
   const roles = [
-    { id: 'DO', label: 'Owner', full: 'Document Owner' },
-    { id: 'REV', label: 'Review', full: 'Reviewer' },
-    { id: 'APP', label: 'Approve', full: 'Approver' },
-    { id: 'DCA', label: 'Admin', full: 'Document Control Admin' },
-    { id: 'INTERNAL_AUDITOR', label: 'I-Audit', full: 'Internal Auditor' },
-    { id: 'EXTERNAL_AUDITOR', label: 'E-Audit', full: 'External Auditor' }
+    { id: ROLES.DO, label: 'Owner', full: 'Document Owner' },
+    { id: ROLES.REV, label: 'Review', full: 'Reviewer' },
+    { id: ROLES.APP, label: 'Approve', full: 'Approver' },
+    { id: ROLES.DCA, label: 'Admin', full: 'Document Control Admin' },
+    { id: ROLES.RM, label: 'RM', full: 'Records Manager' },
+    { id: ROLES.INTERNAL_AUDITOR, label: 'I-Audit', full: 'Internal Auditor' },
+    { id: ROLES.EXTERNAL_AUDITOR, label: 'E-Audit', full: 'External Auditor' }
   ];
 
   return (

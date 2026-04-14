@@ -20,7 +20,12 @@ import {
   AlertCircle,
   AlertTriangle,
   Clock,
-  ChevronRight
+  ChevronRight,
+  ShieldCheck,
+  ClipboardList,
+  Search,
+  Lock,
+  ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,7 +52,11 @@ export default function DocumentDetail() {
     comments,
     addComment,
     auditLogs,
-    addAuditEntry
+    addAuditEntry,
+    observations,
+    addObservation,
+    nonConformities,
+    addNC
   } = useDocumentStore();
 
   const [activeTab, setActiveTab] = useState("document");
@@ -55,13 +64,22 @@ export default function DocumentDetail() {
   const [isEditing, setIsEditing] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [changeSummary, setChangeSummary] = useState("");
+  
+  const [isRaisingObservation, setIsRaisingObservation] = useState(false);
+  const [isRaisingNC, setIsRaisingNC] = useState(false);
+  const [obsText, setObsText] = useState("");
+  const [ncRequirement, setNcRequirement] = useState("");
+  const [ncFailure, setNcFailure] = useState("");
+  const [ncEvidence, setNcEvidence] = useState("");
+
   const [editName, setEditName] = useState("");
   const [editType, setEditType] = useState("");
   const [editDept, setEditDept] = useState("");
+  const [editVersion, setEditVersion] = useState("");
   const [isSigning, setIsSigning] = useState(false);
   const [signatureToken, setSignatureToken] = useState("");
-  const [isRetiring, setIsRetiring] = useState(false);
-  const [retirementReason, setRetirementReason] = useState("");
+  const [isReworking, setIsReworking] = useState(false);
+  const [reworkReason, setReworkReason] = useState("");
   const [editHeader1, setEditHeader1] = useState("");
   const [editHeader2, setEditHeader2] = useState("");
   const [editIndex1, setEditIndex1] = useState("");
@@ -82,6 +100,7 @@ export default function DocumentDetail() {
       setEditName(selectedDocument.name);
       setEditType(selectedDocument.type);
       setEditDept(selectedDocument.department);
+      setEditVersion(selectedDocument.version);
       setEditHeader1(selectedDocument.header1 || "EXECUTIVE DESCRIPTION");
       setEditHeader2(selectedDocument.header2 || "CONTROLLED CONTENT");
       setEditIndex1(selectedDocument.index1 || "01");
@@ -97,8 +116,13 @@ export default function DocumentDetail() {
   const allVersions = React.useMemo(() => {
     if (!selectedDocument || !documents) return [];
     return documents
-      .filter(d => d.docNumber === selectedDocument.docNumber)
+      .filter(d => d.docNumber && d.docNumber === selectedDocument.docNumber)
       .sort((a, b) => b.version.localeCompare(a.version));
+  }, [selectedDocument, documents]);
+
+  const otherVersions = React.useMemo(() => {
+    if (!selectedDocument || !documents) return [];
+    return documents.filter(d => d.docNumber === selectedDocument.docNumber && d.id !== selectedDocument.id);
   }, [selectedDocument, documents]);
 
   if (!selectedDocument) {
@@ -115,7 +139,8 @@ export default function DocumentDetail() {
     );
   }
 
-  const availableActions = workflowService.getAvailableActions(selectedDocument.stateCode, userRole);
+  const hasPreviousVersion = otherVersions.length > 0;
+  const availableActions = workflowService.getAvailableActions(selectedDocument.stateCode, userRole, hasPreviousVersion);
   const docComments = comments[selectedDocument.id] || [];
   const docLogs = auditLogs[selectedDocument.id] || [];
   
@@ -123,6 +148,18 @@ export default function DocumentDetail() {
   const canEdit = userRole === 'DO'; 
 
   const handleAction = (actionId) => {
+    setActiveAction(actionId);
+
+    // Auditor Intercepts
+    if (actionId === 'RAISE_OBSERVATION' && userRole === ROLES.INTERNAL_AUDITOR) {
+      setIsRaisingObservation(true);
+      return;
+    }
+    if (actionId === 'AUDIT_FAIL' && userRole === ROLES.EXTERNAL_AUDITOR) {
+      setIsRaisingNC(true);
+      return;
+    }
+
     if (actionId === 'APPROVE' && selectedDocument.stateCode === 'S3' && userRole === 'APP') {
       setActiveAction('APPROVE');
       setIsSigning(true);
@@ -135,42 +172,87 @@ export default function DocumentDetail() {
       return;
     }
     
-    // RETIREMENT CHECK: RM obsoleting an Effective doc
-    if (actionId === 'OBSOLETE' && selectedDocument.stateCode === 'S5' && userRole === 'RM') {
-      setIsRetiring(true);
+    // REWORK/REJECT CHECK
+    if (actionId === 'REWORK' || actionId === 'REJECT' || actionId === 'AUDIT_FAIL') {
+      setActiveAction(actionId);
+      setIsReworking(true);
       return;
     }
 
     const nextStateCode = workflowService.getNextStatus(selectedDocument.stateCode, actionId);
     if (nextStateCode !== selectedDocument.stateCode) {
-      const newId = transitionStatus(selectedDocument.id, nextStateCode);
+      // If Process Owner initiates revision, it's a Major Bump (v2.0)
+      const isMajor = actionId === 'REVISE' && userRole === 'PO';
+      const newId = transitionStatus(selectedDocument.id, nextStateCode, isMajor);
       if (newId && typeof newId === 'string' && newId !== selectedDocument.id) {
         navigate(`/documents/${newId}`);
       }
     } else {
-      // If it's just a loggable action like RAISE_OBSERVATION or RAISE_NC
-      if (actionId === 'RAISE_OBSERVATION') {
-        addAuditEntry(selectedDocument.id, { 
-          user: `Role: ${userRole}`, 
-          action: "OBSERVATION", 
-          detail: "Internal Auditor raised a process observation." 
-        });
-      } else if (actionId === 'AUDIT_FAIL') {
-        // External auditor rejecting the doc - move to rework
-        transitionStatus(selectedDocument.id, 'S2');
-      }
+      // Audit entry for other actions
+      addAuditEntry(selectedDocument.id, { 
+        user: `Role: ${userRole}`, 
+        action: actionId, 
+        detail: `Action triggered by ${userRole}` 
+      });
     }
-    
-    setIsEditing(false);
   };
 
-  const handleRetireConfirm = () => {
-    if (!retirementReason.trim()) return;
-    transitionStatus(selectedDocument.id, 'S6');
-    // Add audit note for reason (already handled by transitionStatus if we extend it, 
-    // but here we can just close the modal)
-    setIsRetiring(false);
-    setRetirementReason("");
+  const handleConfirmObservation = () => {
+    if (!obsText.trim()) return;
+    addObservation(selectedDocument.id, {
+      text: obsText,
+      author: userRole
+    });
+    addAuditEntry(selectedDocument.id, {
+      user: `Role: ${userRole}`,
+      action: "OBSERVATION",
+      detail: `Internal Auditor raised an observation: ${obsText.substring(0, 50)}...`
+    });
+    setIsRaisingObservation(false);
+    setObsText("");
+    setActiveAction(null);
+  };
+
+  const handleConfirmNC = () => {
+    if (!ncRequirement.trim() || !ncFailure.trim()) return;
+    addNC(selectedDocument.id, {
+      requirement: ncRequirement,
+      failure: ncFailure,
+      evidence: ncEvidence,
+      author: userRole
+    });
+    // NC Forces transition to S2 (Rework)
+    transitionStatus(selectedDocument.id, 'S2');
+    addAuditEntry(selectedDocument.id, {
+      user: `Role: ${userRole}`,
+      action: "MAJOR_NC",
+      detail: `Major Non-Conformity Raised. Failure: ${ncFailure.substring(0, 50)}...`
+    });
+    setIsRaisingNC(false);
+    setNcRequirement("");
+    setNcFailure("");
+    setNcEvidence("");
+    setActiveAction(null);
+  };
+
+  const handleReworkConfirm = () => {
+    if (!reworkReason.trim()) return;
+    
+    // Add the reason as a comment
+    const roleLabel = ROLE_LABELS[userRole] || userRole;
+    addComment(selectedDocument.id, {
+      user: `System (${roleLabel})`,
+      avatar: userRole.substring(0, 2),
+      content: `REWORK REQUESTED: ${reworkReason}`
+    });
+
+    // Perform transition
+    const nextStateCode = workflowService.getNextStatus(selectedDocument.stateCode, activeAction);
+    transitionStatus(selectedDocument.id, nextStateCode);
+
+    setIsReworking(false);
+    setReworkReason("");
+    setActiveAction(null);
   };
 
   const handleFinalSign = () => {
@@ -194,6 +276,7 @@ export default function DocumentDetail() {
   const handleSaveEdit = () => {
     updateDocumentContent(
       selectedDocument.id, 
+      editVersion,
       editContent, 
       editDescription, 
       changeSummary, 
@@ -383,46 +466,46 @@ export default function DocumentDetail() {
         </Card>
       )}
 
-      {/* Retirement Confirmation Modal */}
-      {isRetiring && (
+      {/* Rework Reason Modal */}
+      {isReworking && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full mx-4 border border-slate-100 animate-in zoom-in-95 duration-300">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
+              <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-amber-600" />
               </div>
-              <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Retire Document</h3>
+              <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter">
+                {activeAction === 'REJECT' ? 'Reject to Rework' : 'Rework Instructions'}
+              </h3>
             </div>
             
             <p className="text-sm text-slate-500 font-medium mb-6 leading-relaxed">
-              You are about to mark <span className="font-bold text-slate-900">{selectedDocument.id}</span> as Obsolete. 
-              <br/><br/>
-              <span className="text-red-600 font-bold underline">Warning:</span> If a new version is required, please ensure it is Released (S5) first. This action should only be used for process decommissioning.
+              Please provide detailed feedback for the Document Owner. This will be added to the document's comment history.
             </p>
 
             <div className="space-y-4">
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Retirement Reason</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Instructions / Feedback</label>
                 <Textarea 
-                  placeholder="e.g., Process decommissioning, superseded by external standard..."
-                  value={retirementReason}
-                  onChange={(e) => setRetirementReason(e.target.value)}
-                  className="bg-slate-50 border-slate-200 focus:ring-red-500 h-24"
+                  placeholder="e.g., Please update section 2.4 to include the new safety protocols..."
+                  value={reworkReason}
+                  onChange={(e) => setReworkReason(e.target.value)}
+                  className="bg-slate-50 border-slate-200 focus:ring-amber-500 h-32"
                 />
               </div>
               
               <div className="flex gap-3 pt-2">
                 <Button 
-                  className="flex-1 h-12 bg-red-600 hover:bg-red-700 text-white font-black uppercase text-[11px] tracking-widest shadow-lg shadow-red-200"
-                  onClick={handleRetireConfirm}
-                  disabled={!retirementReason.trim()}
+                  className="flex-1 h-12 bg-amber-600 hover:bg-amber-700 text-white font-black uppercase text-[11px] tracking-widest shadow-lg shadow-amber-200"
+                  onClick={handleReworkConfirm}
+                  disabled={!reworkReason.trim()}
                 >
-                  Confirm Obsolescence
+                  Confirm Rework
                 </Button>
                 <Button 
                   variant="outline" 
                   className="flex-1 h-12 border-slate-200 text-slate-500 font-black uppercase text-[11px] tracking-widest"
-                  onClick={() => setIsRetiring(false)}
+                  onClick={() => setIsReworking(false)}
                 >
                   Cancel
                 </Button>
@@ -497,6 +580,97 @@ export default function DocumentDetail() {
         </Dialog>
       )}
 
+      {/* Internal Audit Observation Modal */}
+      {isRaisingObservation && (
+        <Dialog open={isRaisingObservation} onOpenChange={setIsRaisingObservation}>
+          <div className="space-y-6 p-1">
+            <div className="text-center space-y-2">
+              <div className="mx-auto w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 border border-indigo-100">
+                <Search className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-black text-slate-900 uppercase tracking-tighter pt-2">Raise Process Observation</h3>
+              <p className="text-[10px] text-slate-400 font-medium px-4 uppercase tracking-widest">Internal Quality Audit Note</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Observation Detail</label>
+                <Textarea 
+                  placeholder="Describe the observation, identified risks, or improvement opportunities..."
+                  className="min-h-[120px] text-xs bg-slate-50 border-slate-200 focus:ring-indigo-500 rounded-xl p-4"
+                  value={obsText}
+                  onChange={(e) => setObsText(e.target.value)}
+                />
+              </div>
+              
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" onClick={() => setIsRaisingObservation(false)} className="flex-1 text-[10px] font-black uppercase tracking-widest h-10">Cancel</Button>
+                <Button disabled={!obsText.trim()} onClick={handleConfirmObservation} className="flex-1 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest h-10 shadow-lg shadow-indigo-100">Submit Finding</Button>
+              </div>
+            </div>
+          </div>
+        </Dialog>
+      )}
+
+      {/* External Audit Major NC Modal */}
+      {isRaisingNC && (
+        <Dialog open={isRaisingNC} onOpenChange={setIsRaisingNC}>
+          <div className="space-y-6 p-1">
+            <div className="text-center space-y-2">
+              <div className="mx-auto w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center text-red-600 border border-red-100">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-black text-red-600 uppercase tracking-tighter pt-2">Raise Major Non-Conformity</h3>
+              <p className="text-[10px] text-slate-400 font-medium px-4 uppercase tracking-widest">Formal Compliance Violation</p>
+            </div>
+
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto px-1">
+              <div className="space-y-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">1. Compliance Requirement</label>
+                  <Input 
+                    placeholder="e.g. ISO 9001:2015 Clause 7.5.3"
+                    className="text-[11px] bg-white border-slate-200 h-9"
+                    value={ncRequirement}
+                    onChange={(e) => setNcRequirement(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">2. Nature of Failure</label>
+                  <Textarea 
+                    placeholder="Explain why the document fails to meet the requirement..."
+                    className="min-h-[80px] text-[11px] bg-white border-slate-200"
+                    value={ncFailure}
+                    onChange={(e) => setNcFailure(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">3. Objective Evidence</label>
+                  <Textarea 
+                    placeholder="List specific observations, records, or missing control points..."
+                    className="min-h-[80px] text-[11px] bg-white border-slate-200"
+                    value={ncEvidence}
+                    onChange={(e) => setNcEvidence(e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              <div className="p-3 bg-red-50/50 rounded-xl border border-red-100 flex items-start gap-3">
+                <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                <p className="text-[9px] text-red-600 font-bold uppercase leading-tight">
+                  Raising a Major NC will automatically transition this document to REWORK (S2) and record a formal compliance failure.
+                </p>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" onClick={() => setIsRaisingNC(false)} className="flex-1 text-[10px] font-black uppercase tracking-widest h-10">Cancel Action</Button>
+                <Button disabled={!ncRequirement.trim() || !ncFailure.trim()} onClick={handleConfirmNC} className="flex-1 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest h-10 shadow-lg shadow-red-100">Enforce NC & Rework</Button>
+              </div>
+            </div>
+          </div>
+        </Dialog>
+      )}
+
 
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
@@ -505,7 +679,8 @@ export default function DocumentDetail() {
             {[
               { id: 'document', label: 'Document', icon: FileText },
               { id: 'history', label: 'History', icon: History },
-              { id: 'versions', label: 'Versions', icon: Layers }
+              { id: 'versions', label: 'Versions', icon: Layers },
+              { id: 'findings', label: 'Audit Findings', icon: ShieldCheck }
             ].map(tab => (
               <Button
                 key={tab.id}
@@ -729,6 +904,84 @@ export default function DocumentDetail() {
                 </div>
               </CardContent>
             )}
+
+            {activeTab === 'findings' && (
+              <CardContent className="p-8">
+                <div className="space-y-8">
+                  {/* Non-Conformities Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 border-b border-red-50 pb-2">
+                      <AlertTriangle className="w-5 h-5 text-red-600" />
+                      <h3 className="text-xs font-black uppercase tracking-widest text-red-600">Major Non-Conformities</h3>
+                    </div>
+                    {nonConformities[selectedDocument.id]?.length > 0 ? nonConformities[selectedDocument.id].map((nc) => (
+                      <div key={nc.id} className="p-5 bg-red-50/30 border border-red-100 rounded-2xl space-y-3">
+                        <div className="flex justify-between items-start">
+                          <span className="text-[10px] font-black bg-red-600 text-white px-2 py-0.5 rounded uppercase tracking-tighter">Major NC</span>
+                          <span className="text-[10px] text-red-400 font-bold tabular-nums">{new Date(nc.timestamp).toLocaleString()}</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <div>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Requirement</p>
+                            <p className="text-xs font-black text-slate-900">{nc.requirement}</p>
+                          </div>
+                          <div className="md:col-span-2">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Failure Description</p>
+                            <p className="text-xs font-bold text-slate-700 leading-relaxed">{nc.failure}</p>
+                          </div>
+                        </div>
+                        {nc.evidence && (
+                          <div className="pt-2 border-t border-red-100/50">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Objective Evidence</p>
+                            <p className="text-xs text-slate-600 italic">"{nc.evidence}"</p>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 pt-1">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Raised by:</span>
+                          <span className="text-[9px] font-black text-red-600 uppercase tracking-tighter bg-red-50 px-1.5 py-0.5 rounded">{nc.author}</span>
+                        </div>
+                      </div>
+                    )) : (
+                      <div className="py-12 text-center bg-slate-50 border border-dashed border-slate-200 rounded-3xl">
+                        <ShieldCheck className="w-8 h-8 mx-auto text-slate-200 mb-2" />
+                        <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">No Non-Conformities Detected</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Observations Section */}
+                  <div className="space-y-4 pt-6 border-t border-slate-100">
+                    <div className="flex items-center gap-3 border-b border-indigo-50 pb-2">
+                      <Search className="w-5 h-5 text-indigo-600" />
+                      <h3 className="text-xs font-black uppercase tracking-widest text-indigo-600">Internal Audit Observations</h3>
+                    </div>
+                    {observations[selectedDocument.id]?.length > 0 ? observations[selectedDocument.id].map((obs) => (
+                      <div key={obs.id} className="relative flex gap-4 p-5 bg-indigo-50/20 border border-indigo-100/50 rounded-2xl group transition-all hover:bg-white hover:shadow-xl hover:shadow-indigo-500/5">
+                        <div className="w-10 h-10 rounded-xl bg-white shadow-sm border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+                          <ClipboardList className="w-5 h-5" />
+                        </div>
+                        <div className="space-y-1.5 flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Internal Finding</span>
+                            <span className="text-[9px] text-slate-400 font-bold tabular-nums">{new Date(obs.timestamp).toLocaleString()}</span>
+                          </div>
+                          <p className="text-xs font-bold text-slate-700 leading-relaxed italic border-l-2 border-indigo-200 pl-4 py-1">{obs.text}</p>
+                          <div className="flex items-center gap-2 pt-1 opacity-60">
+                            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Auditor Persona:</span>
+                            <span className="text-[8px] font-black text-slate-600 uppercase tracking-tighter">{obs.author}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )) : (
+                      <div className="py-12 text-center bg-slate-50 border border-dashed border-slate-200 rounded-3xl">
+                        <ClipboardList className="w-8 h-8 mx-auto text-slate-200 mb-2" />
+                        <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">No Observations Recorded</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            )}
           </Card>
         </div>
 
@@ -747,7 +1000,7 @@ export default function DocumentDetail() {
                   options: Object.keys(DOC_TYPE_LABELS),
                   setter: setEditType
                 },
-                { label: "Active Version", val: selectedDocument.version, highlight: 'text-indigo-600 bg-indigo-50', readOnly: true },
+                { label: "Active Version", val: editVersion, setter: setEditVersion, isInput: true, highlight: 'text-indigo-600 bg-indigo-50' },
                 { 
                   label: "Department", 
                   val: editDept, 
@@ -759,13 +1012,21 @@ export default function DocumentDetail() {
                 <div key={item.label} className="flex justify-between px-5 py-3 border-b border-gray-50 last:border-0 items-center hover:bg-slate-50/30 transition-colors">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{item.label}</span>
                   {isEditing && !item.readOnly ? (
-                    <select 
-                      value={item.val}
-                      onChange={(e) => item.setter(e.target.value)}
-                      className="text-[10px] font-black text-slate-900 bg-slate-100 border-none rounded px-1.5 py-0.5 focus:ring-1 focus:ring-indigo-600 outline-none"
-                    >
-                      {item.options.map(opt => <option key={opt} value={opt}>{DOC_TYPE_LABELS[opt] || opt}</option>)}
-                    </select>
+                    item.isSelect ? (
+                      <select 
+                        value={item.val}
+                        onChange={(e) => item.setter(e.target.value)}
+                        className="text-[10px] font-black text-slate-900 bg-slate-100 border-none rounded px-1.5 py-0.5 focus:ring-1 focus:ring-indigo-600 outline-none"
+                      >
+                        {item.options.map(opt => <option key={opt} value={opt}>{DOC_TYPE_LABELS[opt] || opt}</option>)}
+                      </select>
+                    ) : (
+                      <input 
+                        value={item.val}
+                        onChange={(e) => item.setter(e.target.value)}
+                        className="text-[10px] font-black text-slate-900 bg-slate-100 border-none rounded px-1.5 py-0.5 focus:ring-1 focus:ring-indigo-600 outline-none w-20 text-right"
+                      />
+                    )
                   ) : (
                     <span className={`text-[10px] font-black text-slate-900 px-2 py-1 rounded uppercase ${item.highlight || ""}`}>
                       {item.label === 'Category' ? (DOC_TYPE_LABELS[item.val] || item.val) : item.val}
@@ -884,7 +1145,7 @@ export default function DocumentDetail() {
               
               <div className="space-y-3 pt-6 border-t border-slate-100">
                 {availableActions.length > 0 ? (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="flex flex-col gap-2.5">
                     {availableActions.map((action) => (
                       <Button
                         key={action.id}

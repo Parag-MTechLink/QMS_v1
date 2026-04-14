@@ -12,7 +12,8 @@ import {
   FileText,
   BadgeAlert,
   Search,
-  RefreshCcw
+  RefreshCcw,
+  ClipboardList
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,217 +28,254 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-
-const clauses = [
-  { id: "4.1", description: "Understanding the organization and its context", standard: "ISO 9001", docs: 3, status: "Compliant" },
-  { id: "6.1.2", description: "Information security risk assessment", standard: "ISO 27001", docs: 1, status: "Needs Review" },
-  { id: "8.2", description: "Emergency preparedness and response", standard: "ISO 14001", docs: 0, status: "Gap Identified" },
-  { id: "7.2", description: "Competence", standard: "ISO 9001", docs: 5, status: "Compliant" }
-];
+import { useDocumentStore } from "@/store/useDocumentStore";
 
 export default function Compliance() {
+  const { nonConformities, documents } = useDocumentStore();
+  
+  // Aggregate all NCs across all documents
+  const allNCs = Object.entries(nonConformities).flatMap(([docId, ncs]) => 
+    ncs.map(nc => ({ ...nc, docId, docName: documents.find(d => d.id === docId)?.name || docId }))
+  );
+
+  const clauses = [
+    { id: "4.1", description: "Understanding the organization and its context", standard: "ISO 9001", docs: 3, status: "Compliant" },
+    { id: "6.1.2", description: "Information security risk assessment", standard: "ISO 27001", docs: 1, status: "Needs Review" },
+    { id: "8.2", description: "Emergency preparedness and response", standard: "ISO 14001", docs: 0, status: "Gap Identified" },
+    { id: "7.2", description: "Competence", standard: "ISO 9001", docs: 5, status: "Compliant" }
+  ];
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-700">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="flex flex-wrap items-end justify-between gap-3 px-1">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Compliance & Standards</h1>
-          <p className="text-sm text-gray-500">Track standards mapping and compliance gaps across your organization.</p>
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-indigo-600" />
+            <h1 className="text-2xl font-black text-gray-900 tracking-tighter uppercase">Compliance Command</h1>
+          </div>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Regulatory Standards & Non-Conformance Register</p>
         </div>
-        <Button className="h-9 bg-indigo-600 hover:bg-indigo-700 text-white">New Document</Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" className="h-9 border-slate-200 text-[10px] font-black uppercase tracking-widest">Standards Mapping</Button>
+          <Button className="h-9 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100">Export Registry</Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div className="lg:col-span-12 space-y-8">
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="border-gray-200">
-               <CardContent className="p-6 flex flex-col items-center justify-center gap-2">
-                 <div className="relative w-24 h-24">
+            <Card className="border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden bg-white group hover:translate-y-[-2px] transition-all duration-300">
+               <CardContent className="p-6 flex items-center justify-between">
+                 <div className="space-y-1">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Compliance Score</span>
+                    <div className="text-3xl font-black text-slate-900 tracking-tighter tabular-nums">88%</div>
+                 </div>
+                 <div className="relative w-16 h-16">
                    <svg className="w-full h-full transform -rotate-90">
-                     <circle cx="48" cy="48" r="40" stroke="#f1f5f9" strokeWidth="8" fill="transparent" className="stroke-slate-100" />
-                     <circle cx="48" cy="48" r="40" stroke="#2563eb" strokeWidth="8" fill="transparent" strokeDasharray="251.2" strokeDashoffset="30.14" className="stroke-blue-600 transition-all duration-1000 ease-out" />
+                     <circle cx="32" cy="32" r="28" stroke="#f1f5f9" strokeWidth="6" fill="transparent" />
+                     <circle cx="32" cy="32" r="28" stroke="#4f46e5" strokeWidth="6" fill="transparent" strokeDasharray="175.9" strokeDashoffset="21.1" className="transition-all duration-1000 ease-out" />
                    </svg>
-                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                     <span className="text-xl font-black text-gray-900">88%</span>
-                     <span className="text-[8px] font-black uppercase text-gray-400 tracking-widest leading-none">Overall</span>
-                   </div>
+                   <ShieldCheck className="absolute inset-0 m-auto w-5 h-5 text-indigo-600 opacity-20" />
                  </div>
                </CardContent>
             </Card>
 
-            <Card className="border-gray-200">
+            <Card className="border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden bg-white group hover:translate-y-[-2px] transition-all duration-300">
               <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                   <div className="p-2 bg-blue-50 rounded-lg">
-                     <Book className="w-4 h-4 text-blue-600" />
-                   </div>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-2xl font-black text-slate-900">8</span>
-                  <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-gray-400">
-                    Monitored Standards
-                  </div>
-                </div>
+                 <div className="flex justify-between items-start mb-4">
+                    <div className="p-2 bg-red-50 rounded-lg group-hover:scale-110 transition-transform">
+                      <AlertTriangle className="w-4 h-4 text-red-600" />
+                    </div>
+                    <span className="text-[10px] font-black text-red-500 uppercase tracking-widest bg-red-50 px-2 py-0.5 rounded">Critical</span>
+                 </div>
+                 <div className="space-y-1">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Open Major NCs</span>
+                    <div className="text-3xl font-black text-slate-900 tracking-tighter tabular-nums">{allNCs.length}</div>
+                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-gray-200">
+            <Card className="border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden bg-white group hover:translate-y-[-2px] transition-all duration-300">
               <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                   <div className="p-2 bg-indigo-50 rounded-lg">
-                     <LayoutList className="w-4 h-4 text-indigo-600" />
-                   </div>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-2xl font-black text-slate-900">142</span>
-                  <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-gray-400">
-                    Mapped Clauses
-                    <span className="text-slate-400 h-min mt-0.5">—</span>
-                  </div>
-                </div>
+                 <div className="flex justify-between items-start mb-4">
+                    <div className="p-2 bg-indigo-50 rounded-lg group-hover:scale-110 transition-transform">
+                      <RefreshCcw className="w-4 h-4 text-indigo-600" />
+                    </div>
+                 </div>
+                 <div className="space-y-1">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Active CAPAs</span>
+                    <div className="text-3xl font-black text-slate-900 tracking-tighter tabular-nums">3</div>
+                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-gray-200">
+            <Card className="border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden bg-white group hover:translate-y-[-2px] transition-all duration-300">
               <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                   <div className="p-2 bg-red-50 rounded-lg">
-                     <AlertTriangle className="w-4 h-4 text-red-600" />
-                   </div>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-2xl font-black text-slate-900">12</span>
-                  <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-gray-400">
-                    Identified Gaps
-                  </div>
-                </div>
+                 <div className="flex justify-between items-start mb-4">
+                    <div className="p-2 bg-blue-50 rounded-lg group-hover:scale-110 transition-transform">
+                      <Book className="w-4 h-4 text-blue-600" />
+                    </div>
+                 </div>
+                 <div className="space-y-1">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Mapped Clauses</span>
+                    <div className="text-3xl font-black text-slate-900 tracking-tighter tabular-nums">142</div>
+                 </div>
               </CardContent>
             </Card>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Standards Coverage</h3>
-              <Button variant="ghost" className="text-blue-600 font-bold text-xs uppercase tracking-widest p-1 h-auto">View All</Button>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[ 
-                { name: "ISO 9001:2015", area: "Quality Management", p: 92, clauses: "64/70 Clauses", style: "blue" },
-                { name: "ISO 27001:2022", area: "Information Security", p: 76, clauses: "86/114 Clauses", style: "amber" },
-                { name: "ISO 14001:2015", area: "Environmental Management", p: 45, clauses: "23/62 Clauses", style: "red" }
-              ].map((iso) => (
-                <Card key={iso.name} className="border-gray-200 shadow-sm group">
-                  <CardContent className="p-6 space-y-6">
-                    <div className="flex justify-between items-start">
-                      <div className="flex flex-col">
-                        <span className="text-base font-black text-slate-900">{iso.name}</span>
-                        <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider h-4">{iso.area}</span>
-                      </div>
-                      <span className={cn(
-                        "text-[10px] font-black px-2 py-0.5 rounded-full uppercase",
-                        iso.style === "blue" ? "bg-green-50 text-green-700" : iso.style === "amber" ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700"
-                      )}>
-                        {iso.p}%
-                      </span>
-                    </div>
-
-                    <div className="space-y-2">
-                       <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                         <div 
-                           className={cn("h-full rounded-full transition-all duration-1000", iso.style === "blue" ? "bg-green-500" : iso.style === "amber" ? "bg-blue-500" : "bg-red-500")}
-                           style={{ width: `${iso.p}%` }}
-                         />
-                       </div>
-                       <div className="flex justify-between text-[8px] font-black uppercase text-gray-400 tracking-widest">
-                         <span>Coverage</span>
-                         <span>{iso.clauses}</span>
-                       </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-50 opacity-0 group-hover:opacity-100 transition-opacity">
-                       <div className="flex items-center gap-1 text-[10px] text-gray-400">
-                         <FileText className="w-3 h-3" />
-                         128 Docs
-                       </div>
-                       <Button variant="link" className="text-blue-600 text-[10px] p-0 font-black uppercase tracking-widest gap-1">
-                         Details <ArrowRight className="w-2.5 h-2.5" />
-                       </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-4 pt-4">
-             <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Clause Coverage</h3>
-             </div>
-             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                <div className="relative min-w-[260px] flex-1 max-w-md">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                  <Input className="h-9 border-gray-200 bg-gray-50 pl-9 text-sm focus:bg-white" placeholder="Search clauses, standards, or keywords..." />
+          {/* Global Non-Conformance Register */}
+          <Card className="border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden bg-white">
+            <CardHeader className="py-5 px-6 border-b border-slate-50 bg-slate-50/30 flex flex-row items-center justify-between">
+              <div className="space-y-1">
+                <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Non-Conformance & CAPA Register</CardTitle>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aggregated evidence-based violations</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-300" />
+                  <Input placeholder="Search observations..." className="h-8 w-48 pl-8 text-[10px] bg-white border-slate-200" />
                 </div>
-                <Button variant="outline" className="text-xs h-9 px-3 rounded-md border-gray-200 gap-2">
+                <Button variant="outline" size="sm" className="h-8 px-3 border-slate-200 text-[10px] font-black uppercase tracking-widest gap-2">
                   <Filter className="w-3 h-3" />
                   Filter
                 </Button>
-             </div>
-             
-             <Card className="border-gray-200 shadow-sm overflow-hidden bg-white">
-                <Table>
-                  <TableHeader className="bg-gray-50/50">
-                    <TableRow className="hover:bg-transparent border-gray-200">
-                      <TableHead className="w-[120px] text-[10px] font-black uppercase tracking-widest text-gray-400 px-6 py-4">Clause ID</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase tracking-widest text-gray-400 px-6 py-4">Description</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase tracking-widest text-gray-400 px-6 py-4">Standard</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase tracking-widest text-gray-400 px-6 py-4 text-center">Docs</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase tracking-widest text-gray-400 px-6 py-4">Status</TableHead>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-slate-50/50">
+                  <TableRow className="hover:bg-transparent border-slate-100">
+                    <TableHead className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-6 h-12">Log Date</TableHead>
+                    <TableHead className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-6 h-12">Reference ID</TableHead>
+                    <TableHead className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-6 h-12">Compliance Gap</TableHead>
+                    <TableHead className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-6 h-12">Nature of Failure</TableHead>
+                    <TableHead className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-6 h-12">Auditor</TableHead>
+                    <TableHead className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-6 h-12">Status</TableHead>
+                    <TableHead className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-6 h-12"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {allNCs.map((nc) => (
+                    <TableRow key={nc.id} className="group hover:bg-slate-50/50 transition-colors border-slate-50">
+                      <TableCell className="px-6 py-5 text-[10px] font-bold text-slate-400 tabular-nums uppercase whitespace-nowrap">
+                        {new Date(nc.timestamp).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="px-6 py-5">
+                        <div className="flex flex-col">
+                          <span className="text-xs font-black text-blue-600 tracking-tighter">{nc.docId}</span>
+                          <span className="text-[9px] font-bold text-slate-400 truncate max-w-[120px]">{nc.docName}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-6 py-5">
+                        <div className="flex items-center gap-2">
+                          <ShieldCheck className="w-3.5 h-3.5 text-indigo-500" />
+                          <span className="text-xs font-black text-slate-900 tracking-tight">{nc.requirement || "Process Deviation"}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-6 py-5">
+                        <p className="text-[11px] font-bold text-slate-600 line-clamp-1 max-w-[300px]">{nc.failure || nc.text}</p>
+                      </TableCell>
+                      <TableCell className="px-6 py-5">
+                         <span className="text-[9px] font-black text-slate-500 bg-slate-100 px-2 py-0.5 rounded uppercase tracking-tighter whitespace-nowrap">
+                           {nc.author}
+                         </span>
+                      </TableCell>
+                      <TableCell className="px-6 py-5">
+                        <div className="flex items-center gap-1.5 grayscale group-hover:grayscale-0 transition-all">
+                          <AlertCircle className="w-3 h-3 text-red-500" />
+                          <span className="text-[10px] font-black text-red-600 uppercase tracking-tighter">Open Major NC</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-6 py-5 text-right">
+                        <Button variant="ghost" size="icon" onClick={() => window.location.href=`/documents/${nc.docId}`} className="h-8 w-8 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg">
+                          <ArrowUpRight className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {clauses.map((c, i) => (
-                      <TableRow key={i} className="group hover:bg-slate-50 transition-colors border-gray-50">
-                        <TableCell className="px-6 py-5 font-black text-slate-700 text-xs tracking-wider">{c.id}</TableCell>
-                        <TableCell className="px-6 py-5 text-xs font-semibold text-slate-500 leading-relaxed max-w-sm">{c.description}</TableCell>
-                        <TableCell className="px-6 py-5 text-[10px] font-black text-slate-900 flex items-center gap-1.5 h-full">
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-200" />
-                          {c.standard}
-                        </TableCell>
-                        <TableCell className="px-6 py-5 text-center text-xs font-bold text-slate-600">{c.docs}</TableCell>
-                        <TableCell className="px-6 py-5">
-                          <div className={cn(
-                            "px-2.5 py-0.5 rounded-full text-[10px] font-bold w-fit uppercase tracking-widest border",
-                            c.status === "Compliant" ? "bg-green-50 text-green-700 border-green-100" : 
-                            c.status === "Needs Review" ? "bg-amber-50 text-amber-700 border-amber-100" :
-                            "bg-red-50 text-red-700 border-red-100"
-                          )}>
-                            {c.status}
+                  ))}
+                  {allNCs.length === 0 && (
+                    <TableRow className="hover:bg-transparent">
+                      <TableCell colSpan={7} className="h-48 text-center text-slate-300">
+                        <div className="flex flex-col items-center justify-center gap-3">
+                          <ShieldCheck className="w-12 h-12 opacity-10" />
+                          <div className="space-y-1">
+                            <p className="text-xs font-black uppercase tracking-[0.2em]">0 Major Violations Detected</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">Compliance Registry is currently healthy</p>
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                
-                <div className="p-4 border-t border-gray-100 bg-white flex items-center justify-between">
-                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                    Showing <span className="text-slate-900">1 to 4</span> of 142 entries
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button className="h-8 w-8 rounded-md flex items-center justify-center text-gray-400 hover:bg-gray-100 disabled:opacity-30" disabled>&lt;</button>
-                    <button className="h-8 w-8 rounded-md bg-blue-600 text-white font-black text-[11px] shadow-lg shadow-blue-200">1</button>
-                    <button className="h-8 w-8 rounded-md font-black text-[11px] text-slate-500 hover:bg-gray-100 transition-colors">2</button>
-                    <button className="h-8 w-8 rounded-md flex items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors">&gt;</button>
-                  </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
+            <Card className="border-slate-100 shadow-xl shadow-slate-200/30 overflow-hidden bg-white">
+              <CardHeader className="py-4 px-6 border-b border-slate-50 bg-slate-50/30">
+                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Corrective Action Pipeline (CAPA)</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  {[
+                    { title: "Risk Mitigation: Vendor Control", status: "In Progress", progress: 65, color: "indigo" },
+                    { title: "SOP-ENG Refactoring", status: "Review", progress: 88, color: "emerald" },
+                    { title: "Lab Safety Protocol Update", status: "Drafting", progress: 20, color: "amber" }
+                  ].map((capa, i) => (
+                    <div key={i} className="p-4 rounded-2xl border border-slate-50 bg-slate-50/30 space-y-3">
+                      <div className="flex justify-between items-start">
+                        <p className="text-[11px] font-black text-slate-900 tracking-tight">{capa.title}</p>
+                        <span className={cn(
+                          "text-[9px] font-black px-2 py-0.5 rounded uppercase",
+                          capa.color === 'indigo' ? "bg-indigo-50 text-indigo-600" :
+                          capa.color === 'emerald' ? "bg-emerald-50 text-emerald-600" :
+                          "bg-amber-50 text-amber-600"
+                        )}>{capa.status}</span>
+                      </div>
+                      <Progress value={capa.progress} className={`h-1.5 [&>div]:bg-indigo-600`} />
+                    </div>
+                  ))}
                 </div>
-             </Card>
+              </CardContent>
+            </Card>
+
+            <Card className="border-slate-100 shadow-xl shadow-slate-200/30 overflow-hidden bg-white">
+              <CardHeader className="py-4 px-6 border-b border-slate-50 bg-slate-50/30">
+                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Regulatory Watchlist</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {clauses.map((clause, i) => (
+                   <div key={i} className="px-6 py-4 flex items-center justify-between border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className="text-[10px] font-black text-indigo-600 bg-indigo-50 w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
+                          {clause.id}
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-black text-slate-900">{clause.description}</p>
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{clause.standard} • {clause.docs} Attached Docs</p>
+                        </div>
+                      </div>
+                      <StatusIndicator status={clause.status} />
+                   </div>
+                ))}
+              </CardContent>
+            </Card>
           </div>
         </div>
-
-
       </div>
+    </div>
+  );
+}
+
+function StatusIndicator({ status }) {
+  const isErr = status === "Gap Identified" || status === "Needs Review";
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className={cn("w-1.5 h-1.5 rounded-full", isErr ? "bg-amber-500 animate-pulse" : "bg-emerald-500")} />
+      <span className={cn("text-[9px] font-black uppercase tracking-tighter", isErr ? "text-amber-600" : "text-emerald-600")}>{status}</span>
     </div>
   );
 }
